@@ -1,0 +1,7 @@
+s ![x]|a|{ plus(a,x,3) ; plus(x, a, a) }
+s |foo| = ![x]|a|{ plus(a,x,3) ; plus(x, a, a) }
+s |z| = 2
+d z
+e foo(z)
+d z
+

@@ -1,0 +1,7 @@
+s |x|
+d x
+s |y| = 2
+e x = y
+d x
+e y = 6
+d y

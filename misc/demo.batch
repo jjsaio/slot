@@ -1,0 +1,14 @@
+s |x|
+s x
+d x
+s |y| = 2
+s plus(x, y, 7)
+d x
+e plus(x, y, 7)
+d x
+s |foo| = ![x]|a|{ plus(a,x,3) ; plus(x, a, a) }
+d foo
+s |z| = 2
+e foo(z)
+d z
+
