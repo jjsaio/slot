@@ -5,7 +5,8 @@ Install
 
 * python3 is required
 
-```$ sudo pip3 install lark-parser`
+```
+$ sudo pip3 install lark-parser`
 $ git clone https://github.com/jjsaio/slot`
 $ cd slot`
 $ ./bin/slot interactive
@@ -20,7 +21,8 @@ Some examples
 
 This will show some of the basic operation of interactive-mode:
 
-```$ ./bin/slot interactive
+```
+$ ./bin/slot interactive
 >s> .b misc/demo.batch
 [INFO Slot] batch start:  misc/demo.batch
 ...
