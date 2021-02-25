@@ -6,9 +6,9 @@ Install
 * python3 is required
 
 ```
-$ sudo pip3 install lark-parser`
-$ git clone https://github.com/jjsaio/slot`
-$ cd slot`
+$ sudo pip3 install lark-parser
+$ git clone https://github.com/jjsaio/slot
+$ cd slot
 $ ./bin/slot interactive
 >s> |x|
   <Slot:*>
