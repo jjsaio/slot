@@ -1124,6 +1124,8 @@ Slex = 1143
 Human = 1144
 Command = 1145
 SlotRef = 1146
+MetaSlot = 1147
+MetaSlex = 1148
 
 g_fsMap = {
     APIChannel : "APIChannel",
@@ -1359,6 +1361,8 @@ g_fsMap = {
     MerkleNode : "MerkleNode",
     MerkleTree : "MerkleTree",
     Message : "Message",
+    MetaSlex : "MetaSlex",
+    MetaSlot : "MetaSlot",
     MixerPeerInfo : "MixerPeerInfo",
     MotifQuery : "MotifQuery",
     Motifs : "Motifs",

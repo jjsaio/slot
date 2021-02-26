@@ -12,7 +12,7 @@ def slot_displayType(x):
 
 def slot_repr(x):
     t = type(x).__name__
-    if isinstance(x, M.Slot):
+    if isinstance(x, M.Slot) or isinstance(x, M.MetaSlot):
         d = slot_displayType(x.type)
     elif isinstance(x, M.Slop):
         d = "..." # TBD
@@ -72,9 +72,15 @@ class Environment(object):
             if (not all) and name.startswith('_'):
                 continue
             s = self._namedSlots[name]
-            lines.append("  {} -> {} => {}".format(name, slot_repr(s), slot_repr(s.data)))
+            if isinstance(s, M.Slot):
+                lines.append("  {} -> {} => {}".format(name, slot_repr(s), slot_repr(s.data)))
+            else:
+                lines.append("  {} -> {}".format(name, slot_repr(s)))
         for slot in self._anonymousSlots:
-            lines.append("  ANON  {} => {}".format(slot_repr(slot), slot_repr(slot.data)))
+            if isinstance(s, M.Slot):
+                lines.append("  ANON  {} => {}".format(slot_repr(slot), slot_repr(slot.data)))
+            else:
+                lines.append("  ANON  {}".format(slot_repr(s)))
         return "\n".join(lines)
 
     def addBuiltin(self, name, handler, params):
@@ -126,9 +132,12 @@ class Slot(LoggingClass):
             return False
 
         self.debug("_exec", prettyJson(slex.json()))
+
         assert(isinstance(slex.op, M.Slot))
         slop = slex.op.data
         assert(isinstance(slop, M.Slop))
+        for arg in slex.args:
+            assert(isinstance(arg, M.Slot))
 
         # natives: just exec, given the passed-in slots 
         self.debug("_exec:", slop.human.name if slop.human else slop.native, slex.args)
@@ -137,49 +146,51 @@ class Slot(LoggingClass):
             slop.native(slex)
             return True
 
-        # ok, we need to convert metaslots to slots:
-        #  - arg slots are used directly
-        #  - locals need new slots (think stack)
+        # ok, we need to instantiate the MetaSlots/MetaSlexes into Slots/Slexes
+
+        # first, set up the args/parameters:
         assert(len(slex.args) == len(slop.params))
-        origParams, origLocals = [], []
-        metaSlots = set()
         for arg, param in zip(slex.args, slop.params):
             # set the metaslot to the passed-in arg
-            orig = param.data
-            assert(isinstance(orig, M.Slot))
-            origParams.append(orig)
+            assert(not param.instanced)
             # TODO: verify here that arg.type is compatible with orig.type 
             # the passed-in slot is to be used in this execution context
-            param.data = arg
-            metaSlots.add(id(param))
+            param.instanced = arg
+
+        # create new slot instances for the locals
         for loc in slop.locals:
-            orig = loc.data
-            assert(isinstance(orig, M.Slot))
-            origLocals.append(orig)
-            # we create a new slot for locals in this execution context
-            localSlot = M.Slot(type = orig.type, human = orig.human)
-            metaSlots.add(id(loc))
+            assert(not loc.instanced)
+            loc.instanced = M.Slot(type = loc.type, human = loc.human)
 
-        # execution: the steps are all (potentially) metaslotted
-        # need to drop as appropriate in order to make executable slexes
-        self.debug("_exec steps:", slop.steps)
+        # define "drop" for (Slot or MetaSlot) to a Slot
+        def _drop(s):
+            if isinstance(s, M.Slot):
+                return s
+            assert(isinstance(s, M.MetaSlot))
+            if s.instanced:
+                return s.instanced # note this allows instanced to take precedence over concrete, e.g., a name was re-bound locally
+            assert(s.concrete)
+            return s.concrete
+
+        # now create all of the metaslexes; it's important to do this
+        # before execution, otherwise this will fail if a slop is
+        # called recursively
+        self.debug("_exec drop steps:", slop.steps)
+        dropped = []
         for step in slop.steps:
-            def _drop(slot):
-                assert(isinstance(slot, M.Slot))
-                res = slot.data if id(slot) in metaSlots else slot
-                assert(isinstance(res, M.Slot))
-                return res
-            dropped = M.Slex(op = _drop(step.op),
-                             args = [ _drop(a) for a in step.args ],
-                             human = step.human)
-            self.debug("_exec subexec:", dropped)
-            self._exec(dropped)
+            dropped.append(M.Slex(op = _drop(step.op),
+                                  args = [ _drop(a) for a in step.args ],
+                                  human = step.human))
 
-        # restore the original placeholders (TAI)
-        for param, orig in zip(slop.params, origParams):
-            param.data = orig
-        for loc, orig in zip(slop.locals, origLocals):
-            loc.data = orig
+        # clear the instanced slots, since they're all set up in the
+        # dropped ones now
+        for ms in slop.params + slop.locals:
+            ms.instanced = None
+
+        # finally, we can exec the dropped slexes
+        for step in dropped:
+            self.debug("_exec subexec:", step)
+            self._exec(step)
             
         return True
 
@@ -261,8 +272,10 @@ class Slot(LoggingClass):
                 self._dispatch(self.mode, struc)
 
     def _cmd_b(self, resp):
-        if (not os.path.exists(resp)) and (os.path.exists(resp + ".batch")):
+        if not os.path.exists(resp):
             resp += ".batch"
+        if not os.path.exists(resp):
+            resp = os.path.join('misc', resp)
         try:
             batch = strWithFileAtPath(resp).split('\n')
         except Exception as e:

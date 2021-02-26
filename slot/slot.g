@@ -24,9 +24,12 @@ slot: slot_ref | constant | slop
 
 //slop: "!" "[" (slot_spec ",")* slot_spec? "]" ("<" (slot_spec ",")* slot_spec ">")? "{" (op ";")* op? "}"
 slop: "!" slop_params slop_locals? slop_steps
-slop_params: "[" (slot_spec ",")* slot_spec? "]"
-slop_locals: "|" (slot_spec ",")* slot_spec? "|"
-slop_steps: "{" (slex ";")* slex? "}"
+slop_params: "[" (metaslot_spec ",")* metaslot_spec? "]"
+slop_locals: "|" (metaslot_spec ",")* metaslot_spec? "|"
+slop_steps: "{" (metaslex ";")* metaslex? "}"
+
+metaslot_spec: slot_name (":" slot_ref)?
+metaslex: slex
 
 slot_ref: NAME
 slot_name: NAME

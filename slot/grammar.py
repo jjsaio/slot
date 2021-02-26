@@ -65,7 +65,8 @@ class StructureMaker(lark.Transformer, LoggingClass):
     start = _simple
 
     def _fixRefs(self, struc, env):
-        assert(struc.fsType in [ fs.Slot, fs.SlotRef, fs.Slex, fs.Slop ])
+        assert(struc.fsType in [ fs.Slot, fs.SlotRef, fs.Slex, fs.Slop, fs.MetaSlot, fs.MetaSlex ])
+        self.debug("_fixRefs", struc)
         return getattr(self, "_fixRefs_{}".format(fs.toString(struc.fsType)))(struc, env)
 
     def _fixRefs_Slot(self, slot, env):
@@ -74,17 +75,27 @@ class StructureMaker(lark.Transformer, LoggingClass):
             slot.data = self._fixRefs(slot.data, env)
         return slot
 
+    def _fixRefs_MetaSlot(self, slot, env):
+        assert(isinstance(slot, M.MetaSlot))
+        assert(not slot.instanced)
+        if slot.concrete:
+            slot.concrete = self._fixRefs(slot.concrete, env)
+        return slot
+
     def _fixRefs_SlotRef(self, ref, env):
-        if not ref.slot:
-            if not env.hasSlotNamed(ref.name):
-                raise Exception("Unbound slot reference: `{}`".format(ref.name))
-            ref.slot = env.slotNamed(ref.name)
-            assert(ref.slot.human.name)
-        return ref.slot
+        if not env.hasSlotNamed(ref.name):
+            raise Exception("Unbound slot reference: `{}`".format(ref.name))
+        return env.slotNamed(ref.name)
 
     def _fixRefs_Slex(self, slex, env):
         assert(isinstance(slex, M.Slex))
-        self._fixRefs_Slot(slex.op, env)
+        slex.op = self._fixRefs(slex.op, env)
+        slex.args = [ self._fixRefs(x, env) for x in slex.args ]
+        return slex
+
+    def _fixRefs_MetaSlex(self, slex, env):
+        assert(isinstance(slex, M.MetaSlex))
+        slex.op = self._fixRefs(slex.op, env)
         slex.args = [ self._fixRefs(x, env) for x in slex.args ]
         return slex
 
@@ -92,18 +103,18 @@ class StructureMaker(lark.Transformer, LoggingClass):
         assert(isinstance(slop, M.Slop))
         slopEnv = env.derive()
         for param in slop.params:
+            assert(isinstance(param, M.MetaSlot))
             if param.human and param.human.name:
-                assert(isinstance(param.data, M.Slot)) # this must be a metaslot
-                slopEnv.addNamedSlot(param.data.human.name, param)
+                slopEnv.addNamedSlot(param.human.name, param)
             else:
                 # builtins may not have named slots
                 slopEnv.addSlot(param)
         for local in slop.locals:
-            assert(isinstance(local.data, M.Slot)) # this must be a metaslot
-            slopEnv.addNamedSlot(local.data.human.name, local)
+            assert(isinstance(local, M.MetaSlot))
+            slopEnv.addNamedSlot(local.human.name, local)
         self.debug("slop derived env:", slopEnv.dump())
         for step in slop.steps:
-            self._fixRefs_Slex(step, slopEnv)
+            self._fixRefs_MetaSlex(step, slopEnv)
         return slop
             
     def structure(self, args):
@@ -119,24 +130,42 @@ class StructureMaker(lark.Transformer, LoggingClass):
             slot.data = args[1].data
         return self.env.addNamedSlot(slot.human.name, slot)
 
+    def _slotType(self, arg):
+        if not arg:
+            return self.env.slotNamed('_Generic')
+        slotType = {
+            "Integer" : "_Integer",
+            "int" : "_Integer",
+            "String" : "_String",
+            "str" : "_String",
+        }.get(arg, arg)
+        if not self.env.hasSlotNamed(slotType):
+            raise Exception("Slot type not found in env: `{}`".format(slotType))
+        return self.env.slotNamed(slotType)
+
     def slot_spec(self, args):
         assert(len(args) >= 1  and  len(args) <= 3)
-        name = args[0]
-        slot = M.Slot(human = M.Human(name = name))
-        if len(args) > 1:
-            slotType = args[1]
-            slotType = {
-                "Integer" : "_Integer",
-                "int" : "_Integer",
-                "String" : "_String",
-                "str" : "_String",
-            }.get(slotType, slotType)
-            if not self.env.hasSlotNamed(slotType):
-                raise Exception("Slot type not found in env: `{}`".format(slotType))
-            slot.type = self.env.slotNamed(slotType)
-        else:
-            slot.type = self.env.slotNamed('_Generic')
-        return slot
+        assert(len(args) < 3) # slot ctor TBD
+        return M.Slot(type = self._slotType(args[1] if len(args) > 1 else None), human = M.Human(name = args[0]))
+
+    def metaslot_spec(self, args):
+        assert(len(args) >= 1  and  len(args) <= 3)
+        assert(len(args) < 3) # slot ctor TBD
+        return M.MetaSlot(type = self._slotType(args[1] if len(args) > 1 else None), human = M.Human(name = args[0]))
+
+    def _metaSlot(self, slot):
+        if isinstance(slot, M.SlotRef):
+            return slot
+        assert(isinstance(slot, M.Slot))
+        return M.MetaSlot(type = slot.type, concrete = slot, human = slot.human)
+
+    def metaslex(self, args):
+        assert(1 == len(args))
+        slex = args[0]
+        assert(isinstance(slex, M.Slex))
+        return M.MetaSlex(op = self._metaSlot(slex.op),
+                          args = [ self._metaSlot(s) for s in slex.args ],
+                          human = slex.human)
 
     def slex(self, args):
         assert(1 == len(args))
@@ -145,19 +174,13 @@ class StructureMaker(lark.Transformer, LoggingClass):
 
     def slex_call(self, args):
         assert(2 == len(args))
-        assert(isinstance(args[0], M.Slot))
-        assert(isinstance(args[0].data, M.Slop)) # this might be too strong for runtime-evaluated ops, TBD
+        assert(isinstance(args[0], M.Slot) or isinstance(args[0], M.SlotRef))
         return M.Slex(op = args[0], args = args[1])
 
     def slex_op(self, args):
         assert(1 == len(args))
         op = args[0]
-        if isinstance(op, M.SlotRef):
-            op = op.slot
-            assert(op) # elsewise NYI
-        assert(isinstance(op, M.Slot))
-        if not isinstance(op.data, M.Slop):
-            raise Exception("Attempt to execute on non-operation: `{}`".format(op.data))
+        assert(isinstance(op, M.SlotRef)  or  isinstance(op, M.Slot))
         return op
 
     def slex_args(self, args):
@@ -175,10 +198,7 @@ class StructureMaker(lark.Transformer, LoggingClass):
 
     def slot_ref(self, args):
         assert(1 == len(args))
-        ref = M.SlotRef(name = args[0].value)
-        if self.env.hasSlotNamed(ref.name):
-            ref.slot = self.env.slotNamed(ref.name)
-        return ref
+        return M.SlotRef(name = args[0].value)
 
     def constant(self, args):
         assert(1 == len(args))
@@ -186,17 +206,12 @@ class StructureMaker(lark.Transformer, LoggingClass):
         return args[0]
 
     def slop(self, args):
-        params = args[0]
-        slop = M.Slop()
-        locals = args[1] if 3 == len(args) else []
-        slotType = self.env.slotNamed('_Slot')
-        def _metaSlot(s):
-            return M.Slot(type = slotType, data = s, human = M.Human(name = "Meta-{}".format(s.human.name)))
-        slop.params = [ _metaSlot(p) for p in params ]
-        slop.locals = [ _metaSlot(l) for l in locals ]
-        slop.steps = args[-1]
-        for x in slop.params + slop.locals:
-            assert(x.human.name)
+        slop = M.Slop(params = args[0],
+                      locals = args[1] if 3 == len(args) else [],
+                      steps = args[-1])
+        for s in slop.params + slop.locals:
+            assert(isinstance(s, M.MetaSlot) or isinstance(s, M.SlotRef))
+            assert(s.human.name)
         return M.Slot(type = self.env.slotNamed('_Slop'), data = slop)
 
     def slop_params(self, args):
