@@ -53,6 +53,7 @@ class LoggingClass(object):
             # for nicer display
             loggerContext = "{}@{}".format(self.__class__.__name__, id(self))
         addLogger(self, loggerContext, level)
+        self._hasError = False
 
     def __getstate__(self):
         ## Include this because loggers in older versions of python cannot be pickled.
@@ -103,6 +104,7 @@ class LoggingClass(object):
         self.setLogLevel(ERROR)
 
     def error(self, *args):
+        self._hasError = True
         self._show(ERROR, args)
 
     def exc(self, e, *args):

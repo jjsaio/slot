@@ -5,8 +5,8 @@ from .fs import fs
 
 class Slot(object):
 
-    def __init__(self, type = None, data = None, subslots = None, human = None):
-        self.type = type or None  # type Slot
+    def __init__(self, slotType = None, data = None, subslots = None, human = None):
+        self.slotType = slotType or None  # type Slot
         self.data = data or None  # type Object
         self.subslots = subslots or []  # type [Slot]
         self.human = human or None  # type Human
@@ -21,7 +21,7 @@ class Slot(object):
 
     def defaultDict(self):
         return {
-            'type' : self.type or None,
+            'slotType' : self.slotType or None,
             'data' : self.data or None,
             'subslots' : self.subslots or [],
             'human' : self.human or None,
@@ -44,7 +44,7 @@ class Slot(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.type = Slot().loadFromJson(json.get('type'))
+        self.slotType = Slot().loadFromJson(json.get('slotType'))
         self.data = Object().loadFromJson(json.get('data'))
         self.subslots = [ Slot().loadFromJson(x) for x in json.get('subslots') or [] ]
         self.human = Human().loadFromJson(json.get('human'))
@@ -54,35 +54,37 @@ class Slot(object):
         d = { }
         if not skipTypes:
             d["type"] = self.typeName
-        if self.type != None: d['type'] = self.type.json(skipTypes = skipTypes) if hasattr(self.type, 'json') else id(self.type)
+        if self.slotType != None: d['slotType'] = self.slotType.json(skipTypes = skipTypes) if hasattr(self.slotType, 'json') else id(self.slotType)
         if self.data != None: d['data'] = self.data.json(skipTypes = skipTypes) if hasattr(self.data, 'json') else id(self.data)
         if self.subslots != None: d['subslots'] = [ x.json(skipTypes = skipTypes) for x in self.subslots ]
         if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
         return d
 
-class SlotRef(object):
+class Slex(object):
 
-    def __init__(self, name = None):
-        self.name = name or ''  # type String
+    def __init__(self, op = None, args = None):
+        self.op = op or None  # type Slot
+        self.args = args or []  # type [Slot]
 
     @property
     def typeName(self):
-        return "SlotRef"
+        return "Slex"
 
     @property
     def fsType(self):
-        return fs.SlotRef
+        return fs.Slex
 
     def defaultDict(self):
         return {
-            'name' : self.name or '',
+            'op' : self.op or None,
+            'args' : self.args or [],
         }
 
     def _description(self):
-        return "SlotRef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+        return "Slex: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
 
     def _newObjectOfSameType(self):
-        return SlotRef()
+        return Slex()
 
     def clone(self):
         c = self._newObjectOfSameType()
@@ -95,14 +97,16 @@ class SlotRef(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.name = json.get('name')
+        self.op = Slot().loadFromJson(json.get('op'))
+        self.args = [ Slot().loadFromJson(x) for x in json.get('args') or [] ]
         return self
 
     def json(self, skipTypes = False):
         d = { }
         if not skipTypes:
             d["type"] = self.typeName
-        if self.name != None: d['name'] = self.name
+        if self.op != None: d['op'] = self.op.json(skipTypes = skipTypes) if hasattr(self.op, 'json') else id(self.op)
+        if self.args != None: d['args'] = [ x.json(skipTypes = skipTypes) for x in self.args ]
         return d
 
 class Slop(object):
@@ -166,63 +170,10 @@ class Slop(object):
         if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
         return d
 
-class Slex(object):
-
-    def __init__(self, op = None, args = None, human = None):
-        self.op = op or None  # type Slot
-        self.args = args or []  # type [Slot]
-        self.human = human or None  # type Human
-
-    @property
-    def typeName(self):
-        return "Slex"
-
-    @property
-    def fsType(self):
-        return fs.Slex
-
-    def defaultDict(self):
-        return {
-            'op' : self.op or None,
-            'args' : self.args or [],
-            'human' : self.human or None,
-        }
-
-    def _description(self):
-        return "Slex: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
-
-    def _newObjectOfSameType(self):
-        return Slex()
-
-    def clone(self):
-        c = self._newObjectOfSameType()
-        if hasattr(self, 'serialize'):
-            c.deserialize(self.serialize())
-        else:
-            c.loadFromJson(self.json())
-        return c
-
-    def loadFromJson(self, json):
-        if not json:
-            return self
-        self.op = Slot().loadFromJson(json.get('op'))
-        self.args = [ Slot().loadFromJson(x) for x in json.get('args') or [] ]
-        self.human = Human().loadFromJson(json.get('human'))
-        return self
-
-    def json(self, skipTypes = False):
-        d = { }
-        if not skipTypes:
-            d["type"] = self.typeName
-        if self.op != None: d['op'] = self.op.json(skipTypes = skipTypes) if hasattr(self.op, 'json') else id(self.op)
-        if self.args != None: d['args'] = [ x.json(skipTypes = skipTypes) for x in self.args ]
-        if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
-        return d
-
 class MetaSlot(object):
 
-    def __init__(self, type = None, concrete = None, instanced = None, human = None):
-        self.type = type or None  # type Slot
+    def __init__(self, slotType = None, concrete = None, instanced = None, human = None):
+        self.slotType = slotType or None  # type Slot
         self.concrete = concrete or None  # type Slot
         self.instanced = instanced or None  # type Slot
         self.human = human or None  # type Human
@@ -237,7 +188,7 @@ class MetaSlot(object):
 
     def defaultDict(self):
         return {
-            'type' : self.type or None,
+            'slotType' : self.slotType or None,
             'concrete' : self.concrete or None,
             'instanced' : self.instanced or None,
             'human' : self.human or None,
@@ -260,7 +211,7 @@ class MetaSlot(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.type = Slot().loadFromJson(json.get('type'))
+        self.slotType = Slot().loadFromJson(json.get('slotType'))
         self.concrete = Slot().loadFromJson(json.get('concrete'))
         self.instanced = Slot().loadFromJson(json.get('instanced'))
         self.human = Human().loadFromJson(json.get('human'))
@@ -270,7 +221,7 @@ class MetaSlot(object):
         d = { }
         if not skipTypes:
             d["type"] = self.typeName
-        if self.type != None: d['type'] = self.type.json(skipTypes = skipTypes) if hasattr(self.type, 'json') else id(self.type)
+        if self.slotType != None: d['slotType'] = self.slotType.json(skipTypes = skipTypes) if hasattr(self.slotType, 'json') else id(self.slotType)
         if self.concrete != None: d['concrete'] = self.concrete.json(skipTypes = skipTypes) if hasattr(self.concrete, 'json') else id(self.concrete)
         if self.instanced != None: d['instanced'] = self.instanced.json(skipTypes = skipTypes) if hasattr(self.instanced, 'json') else id(self.instanced)
         if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
@@ -278,10 +229,9 @@ class MetaSlot(object):
 
 class MetaSlex(object):
 
-    def __init__(self, op = None, args = None, human = None):
+    def __init__(self, op = None, args = None):
         self.op = op or None  # type MetaSlot
         self.args = args or []  # type [MetaSlot]
-        self.human = human or None  # type Human
 
     @property
     def typeName(self):
@@ -295,7 +245,6 @@ class MetaSlex(object):
         return {
             'op' : self.op or None,
             'args' : self.args or [],
-            'human' : self.human or None,
         }
 
     def _description(self):
@@ -317,7 +266,6 @@ class MetaSlex(object):
             return self
         self.op = MetaSlot().loadFromJson(json.get('op'))
         self.args = [ MetaSlot().loadFromJson(x) for x in json.get('args') or [] ]
-        self.human = Human().loadFromJson(json.get('human'))
         return self
 
     def json(self, skipTypes = False):
@@ -326,7 +274,218 @@ class MetaSlex(object):
             d["type"] = self.typeName
         if self.op != None: d['op'] = self.op.json(skipTypes = skipTypes) if hasattr(self.op, 'json') else id(self.op)
         if self.args != None: d['args'] = [ x.json(skipTypes = skipTypes) for x in self.args ]
-        if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
+        return d
+
+class SlopDef(object):
+
+    def __init__(self, params = None, locals = None, steps = None):
+        self.params = params or []  # type [SlotDef]
+        self.locals = locals or []  # type [SlotDef]
+        self.steps = steps or []  # type [SlexDef]
+
+    @property
+    def typeName(self):
+        return "SlopDef"
+
+    @property
+    def fsType(self):
+        return fs.SlopDef
+
+    def defaultDict(self):
+        return {
+            'params' : self.params or [],
+            'locals' : self.locals or [],
+            'steps' : self.steps or [],
+        }
+
+    def _description(self):
+        return "SlopDef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+
+    def _newObjectOfSameType(self):
+        return SlopDef()
+
+    def clone(self):
+        c = self._newObjectOfSameType()
+        if hasattr(self, 'serialize'):
+            c.deserialize(self.serialize())
+        else:
+            c.loadFromJson(self.json())
+        return c
+
+    def loadFromJson(self, json):
+        if not json:
+            return self
+        self.params = [ SlotDef().loadFromJson(x) for x in json.get('params') or [] ]
+        self.locals = [ SlotDef().loadFromJson(x) for x in json.get('locals') or [] ]
+        self.steps = [ SlexDef().loadFromJson(x) for x in json.get('steps') or [] ]
+        return self
+
+    def json(self, skipTypes = False):
+        d = { }
+        if not skipTypes:
+            d["type"] = self.typeName
+        if self.params != None: d['params'] = [ x.json(skipTypes = skipTypes) for x in self.params ]
+        if self.locals != None: d['locals'] = [ x.json(skipTypes = skipTypes) for x in self.locals ]
+        if self.steps != None: d['steps'] = [ x.json(skipTypes = skipTypes) for x in self.steps ]
+        return d
+
+class SlotRef(object):
+
+    def __init__(self, name = None, slex = None, slop = None, slot = None):
+        self.name = name or ''  # type String
+        self.slex = slex or None  # type SlexDef
+        self.slop = slop or None  # type SlopDef
+        self.slot = slot or None  # type SlotDef
+
+    @property
+    def typeName(self):
+        return "SlotRef"
+
+    @property
+    def fsType(self):
+        return fs.SlotRef
+
+    def defaultDict(self):
+        return {
+            'name' : self.name or '',
+            'slex' : self.slex or None,
+            'slop' : self.slop or None,
+            'slot' : self.slot or None,
+        }
+
+    def _description(self):
+        return "SlotRef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+
+    def _newObjectOfSameType(self):
+        return SlotRef()
+
+    def clone(self):
+        c = self._newObjectOfSameType()
+        if hasattr(self, 'serialize'):
+            c.deserialize(self.serialize())
+        else:
+            c.loadFromJson(self.json())
+        return c
+
+    def loadFromJson(self, json):
+        if not json:
+            return self
+        self.name = json.get('name')
+        self.slex = SlexDef().loadFromJson(json.get('slex'))
+        self.slop = SlopDef().loadFromJson(json.get('slop'))
+        self.slot = SlotDef().loadFromJson(json.get('slot'))
+        return self
+
+    def json(self, skipTypes = False):
+        d = { }
+        if not skipTypes:
+            d["type"] = self.typeName
+        if self.name != None: d['name'] = self.name
+        if self.slex != None: d['slex'] = self.slex.json(skipTypes = skipTypes) if hasattr(self.slex, 'json') else id(self.slex)
+        if self.slop != None: d['slop'] = self.slop.json(skipTypes = skipTypes) if hasattr(self.slop, 'json') else id(self.slop)
+        if self.slot != None: d['slot'] = self.slot.json(skipTypes = skipTypes) if hasattr(self.slot, 'json') else id(self.slot)
+        return d
+
+class SlotDef(object):
+
+    def __init__(self, name = None, slotType = None, constant = None):
+        self.name = name or ''  # type String
+        self.slotType = slotType or ''  # type String
+        self.constant = constant or None  # type Object
+
+    @property
+    def typeName(self):
+        return "SlotDef"
+
+    @property
+    def fsType(self):
+        return fs.SlotDef
+
+    def defaultDict(self):
+        return {
+            'name' : self.name or '',
+            'slotType' : self.slotType or '',
+            'constant' : self.constant or None,
+        }
+
+    def _description(self):
+        return "SlotDef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+
+    def _newObjectOfSameType(self):
+        return SlotDef()
+
+    def clone(self):
+        c = self._newObjectOfSameType()
+        if hasattr(self, 'serialize'):
+            c.deserialize(self.serialize())
+        else:
+            c.loadFromJson(self.json())
+        return c
+
+    def loadFromJson(self, json):
+        if not json:
+            return self
+        self.name = json.get('name')
+        self.slotType = json.get('slotType')
+        self.constant = Object().loadFromJson(json.get('constant'))
+        return self
+
+    def json(self, skipTypes = False):
+        d = { }
+        if not skipTypes:
+            d["type"] = self.typeName
+        if self.name != None: d['name'] = self.name
+        if self.slotType != None: d['slotType'] = self.slotType
+        if self.constant != None: d['constant'] = self.constant.json(skipTypes = skipTypes) if hasattr(self.constant, 'json') else id(self.constant)
+        return d
+
+class SlexDef(object):
+
+    def __init__(self, op = None, args = None):
+        self.op = op or None  # type SlotRef
+        self.args = args or []  # type [SlotRef]
+
+    @property
+    def typeName(self):
+        return "SlexDef"
+
+    @property
+    def fsType(self):
+        return fs.SlexDef
+
+    def defaultDict(self):
+        return {
+            'op' : self.op or None,
+            'args' : self.args or [],
+        }
+
+    def _description(self):
+        return "SlexDef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+
+    def _newObjectOfSameType(self):
+        return SlexDef()
+
+    def clone(self):
+        c = self._newObjectOfSameType()
+        if hasattr(self, 'serialize'):
+            c.deserialize(self.serialize())
+        else:
+            c.loadFromJson(self.json())
+        return c
+
+    def loadFromJson(self, json):
+        if not json:
+            return self
+        self.op = SlotRef().loadFromJson(json.get('op'))
+        self.args = [ SlotRef().loadFromJson(x) for x in json.get('args') or [] ]
+        return self
+
+    def json(self, skipTypes = False):
+        d = { }
+        if not skipTypes:
+            d["type"] = self.typeName
+        if self.op != None: d['op'] = self.op.json(skipTypes = skipTypes) if hasattr(self.op, 'json') else id(self.op)
+        if self.args != None: d['args'] = [ x.json(skipTypes = skipTypes) for x in self.args ]
         return d
 
 class Human(object):
@@ -378,68 +537,21 @@ class Human(object):
         if self.displayType != None: d['displayType'] = self.displayType
         return d
 
-class Command(object):
-
-    def __init__(self, key = None, data = None):
-        self.key = key or ''  # type String
-        self.data = data or None  # type Object
-
-    @property
-    def typeName(self):
-        return "Command"
-
-    @property
-    def fsType(self):
-        return fs.Command
-
-    def defaultDict(self):
-        return {
-            'key' : self.key or '',
-            'data' : self.data or None,
-        }
-
-    def _description(self):
-        return "Command: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
-
-    def _newObjectOfSameType(self):
-        return Command()
-
-    def clone(self):
-        c = self._newObjectOfSameType()
-        if hasattr(self, 'serialize'):
-            c.deserialize(self.serialize())
-        else:
-            c.loadFromJson(self.json())
-        return c
-
-    def loadFromJson(self, json):
-        if not json:
-            return self
-        self.key = json.get('key')
-        self.data = Object().loadFromJson(json.get('data'))
-        return self
-
-    def json(self, skipTypes = False):
-        d = { }
-        if not skipTypes:
-            d["type"] = self.typeName
-        if self.key != None: d['key'] = self.key
-        if self.data != None: d['data'] = self.data.json(skipTypes = skipTypes) if hasattr(self.data, 'json') else id(self.data)
-        return d
-
 
 def newObjectOfType(type):
     return globals()[type]()
 
 _g_fsMap = {
     fs.Slot : Slot,
-    fs.SlotRef : SlotRef,
-    fs.Slop : Slop,
     fs.Slex : Slex,
+    fs.Slop : Slop,
     fs.MetaSlot : MetaSlot,
     fs.MetaSlex : MetaSlex,
+    fs.SlopDef : SlopDef,
+    fs.SlotRef : SlotRef,
+    fs.SlotDef : SlotDef,
+    fs.SlexDef : SlexDef,
     fs.Human : Human,
-    fs.Command : Command,
 }
 
 def newObjectOfFixedStringType(type):

@@ -72,6 +72,9 @@ Terminology (proposals)
   may have `` `x` ~~> `3-Lisp run-time error: X is not bound` ``, yet later
   `` `x` ~~> `42` ``
 
+- NOTE: if induction is dependent upon "mode" and that's relevant, we can
+  indicate that within the arrow, e.g., `` `(+ 1 2)` ~i~> `3` ``
+
 - "parse": denotes a relationship between an input-string and the
   immediately consequent structure induced by that input-string.  so,
   `` `42` `` parses to a structure (probably `«42»`) -- and we denote this
@@ -86,3 +89,7 @@ Terminology (proposals)
    up "induces"; so e.g., `` i ~~> o `` and `` i ~< s `` does not imply `` s >~ o ``.
    (e.g., in 3Lisp, the repr of the structure that is the 
    normalisation of `s` in the current interactive environment is `o`).
+
+- "normalise": denotes the 3Lisp operation between structures. i want
+  to use `=>` for designate, though we could use that here and
+  something else? `=n=>`? suggestions?

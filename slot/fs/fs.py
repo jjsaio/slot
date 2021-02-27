@@ -1126,6 +1126,9 @@ Command = 1145
 SlotRef = 1146
 MetaSlot = 1147
 MetaSlex = 1148
+SlopDef = 1149
+SlotDef = 1150
+SlexDef = 1151
 
 g_fsMap = {
     APIChannel : "APIChannel",
@@ -1564,8 +1567,11 @@ g_fsMap = {
     ShowPopup : "ShowPopup",
     Shutdown : "Shutdown",
     Slex : "Slex",
+    SlexDef : "SlexDef",
     Slop : "Slop",
+    SlopDef : "SlopDef",
     Slot : "Slot",
+    SlotDef : "SlotDef",
     SlotRef : "SlotRef",
     SocketClose : "SocketClose",
     SocketError : "SocketError",

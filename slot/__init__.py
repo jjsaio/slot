@@ -1,6 +1,6 @@
 
 def interactive():
-    from .slot import Slot
-    Slot().interactive()
+    from .interactive import Interactive
+    Interactive().go()
 
 i = interactive
