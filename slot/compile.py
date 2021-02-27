@@ -2,6 +2,7 @@
 from . import model as M
 from .fs import fs
 from .logging import LoggingClass
+from .util import prettyJson
 
 
 class Compiler(LoggingClass):
@@ -11,17 +12,20 @@ class Compiler(LoggingClass):
         #self.setLevelDebug()
 
     def canCompile(obj):
-        return obj and hasattr(obj, 'fsType') and hasattr(self, "compile{}".format(fs.toString(obj.fsType)))
+        return obj and hasattr(obj, 'fsType') and hasattr(Compiler, "compile{}".format(fs.toString(obj.fsType)))
 
     def compile(self, obj, context):
         return getattr(self, "compile{}".format(fs.toString(obj.fsType)))(obj, context)
 
     def _slotType(self, typeName, context):
-        if not arg:
-            return context.slotNamed('Generic')
-        if not context.hasSlotNamed(typeName):
+        if not typeName:
+            st = context.slotNamed('Generic').concrete
+        elif not context.hasSlotNamed(typeName):
             raise Exception("Slot type not found in context: `{}`".format(typeName))
-        return context.slotNamed(typeName)
+        else:
+            st = context.slotNamed(typeName).concrete
+        assert(isinstance(st, M.Slot))
+        return st
 
     def compileSlotDef(self, sd, context):
         assert(isinstance(sd, M.SlotDef))
@@ -47,7 +51,7 @@ class Compiler(LoggingClass):
             slot = M.MetaSlot(slotType = context.slotNamed('Slop'), concrete = slop)
         elif ref.slot:
             assert(isinstance(ref.slot, M.SlotDef))
-            slot = self.compileSlotDef(ref.slot)
+            slot = self.compileSlotDef(ref.slot, context)
         else:
             if not context.hasSlotNamed(ref.name):
                 raise Exception("Unbound slot reference: `{}`".format(ref.name))
@@ -57,10 +61,10 @@ class Compiler(LoggingClass):
 
     def compileSlexDef(self, slex, context):
         assert(isinstance(slex, M.SlexDef))
-        slex = M.MetaSlex()
-        slex.op = self.compileSlotRef(slex.op, context)
-        slex.args = [ self.compileSlotRef(x, context) for x in slex.args ]
-        return slex
+        mslex = M.MetaSlex()
+        mslex.op = self.compileSlotRef(slex.op, context)
+        mslex.args = [ self.compileSlotRef(x, context) for x in slex.args ]
+        return mslex
 
     def compileSlopDef(self, slopDef, context):
         assert(isinstance(slopDef, M.SlopDef))

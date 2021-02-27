@@ -1,6 +1,7 @@
 
 from . import model as M
 from .logging import LoggingClass
+from .util import prettyJson
 
 
 class Instantiator(LoggingClass):
@@ -9,13 +10,17 @@ class Instantiator(LoggingClass):
         LoggingClass.__init__(self)
         #self.setLevelDebug()
 
-    def _dropSlot(self, metaSlot):
-        assert(metaSlot and isinstance(metaSlot, M.metaSlot))
-        if s.instanced:
-            # note this allows instanced to take precedence over concrete, e.g., a name was re-bound locally
-            return s.instanced
-        assert(s.concrete)
-        return s.concrete
+    def canInstantiate(obj):
+        return obj and isinstance(obj, M.MetaSlex)
+
+    def _dropSlot(self, ms):
+        assert(ms and isinstance(ms, M.MetaSlot))
+        if ms.instanced:
+            assert(not ms.concrete) # pretty sure concrete/instanced needs to be strictly either-or
+            return ms.instanced
+        if not ms.concrete:
+            raise Exception("Cannot drop slot: {}".format(ms.human.name if ms.human else ms.json()))
+        return ms.concrete
 
     # instantiate takes a MetaSlex to an array of Slex (e.g., each Slex corresponding to a step in the called Slop)
     def instantiate(self, mslex):
@@ -29,7 +34,7 @@ class Instantiator(LoggingClass):
 
         # set up the args/parameters:
         assert(len(mslex.args) == len(slop.params))
-        for arg, param in zip(slex.args, slop.params):
+        for arg, param in zip(mslex.args, slop.params):
             # set the metaslot to the passed-in arg
             assert(not param.instanced)
             # TODO: verify here that arg.slotType is compatible with orig.slotType 

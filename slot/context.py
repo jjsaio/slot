@@ -1,5 +1,6 @@
 
 from . import model as M
+from .display import displayStructure
 from .logging import LoggingClass
 
 
@@ -14,19 +15,22 @@ class Context(LoggingClass):
     def dump(self, all = False):
         lines = [ "Context @ {}".format(id(self)) ]
         for name in sorted(self._namedSlots.keys()):
-            if (not all) and name.startswith('_'):
-                continue
             s = self._namedSlots[name]
-            if isinstance(s, M.Slot):
-                lines.append("  {} -> {} => {}".format(name, displayStructure(s), displayStructure(s.data)))
+            assert(isinstance(s, M.MetaSlot))
+            if s.concrete:
+                lines.append("  {} -> {} => {}".format(name, displayStructure(s.concrete), displayStructure(s.concrete.data)))
             else:
                 lines.append("  {} -> {}".format(name, displayStructure(s)))
         for slot in self._anonymousSlots:
-            if isinstance(s, M.Slot):
-                lines.append("  ANON  {} => {}".format(displayStructure(slot), displayStructure(slot.data)))
+            assert(isinstance(s, M.MetaSlot))
+            if s.concrete:
+                lines.append("  ANON  {} => {}".format(displayStructure(s.concrete), displayStructure(s.concrete.data)))
             else:
                 lines.append("  ANON  {}".format(displayStructure(s)))
-        return "\n".join(lines)
+        dmp = "\n".join(lines)
+        if all and self._parent:
+            dmp += ("\nParent " + self._parent.dump(all = True))
+        return dmp
 
     def derive(self):
         return Context(self)
@@ -40,9 +44,11 @@ class Context(LoggingClass):
     def addNamedSlot(self, name, slot):
         if name in self._namedSlots:
             raise Exception("Slot already exists in context: `{}`".format(name))
+        assert(isinstance(slot, M.MetaSlot))
         self._namedSlots[name] = slot
         return slot
 
     def addSlot(self, slot):
+        assert(isinstance(slot, M.MetaSlot))
         self._anonymousSlots.append(slot)
         return slot

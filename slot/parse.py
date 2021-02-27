@@ -154,8 +154,9 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
 
     def slot_def(self, args):
         assert(len(args) == 1)
-        assert(isinstance(args[0], M.SlotDef))
-        return args[0]
+        sd = args[0]
+        assert(isinstance(sd, M.SlotDef))
+        return sd
 
     def slot(self, args):
         assert(1 == len(args))
@@ -181,32 +182,6 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
         return M.SlotRef(name = args[0])
 
 
-# syntactic shortcuts, etc
-class ExtendedDefinitionMaker(KernelDefinitionMaker):
-
-    def __init__(self):
-        KernelDefinitionMaker.__init__(self)
-
-    def _simple(self, args):
-        assert(1 == len(args))
-        return args[0]
-
-    syntactic_slex_shortcut = _simple
-    syntactic_slot_shortcut = _simple
-
-    def assignment(self, args):
-        assert(2 == len(args))
-        assert(isinstance(args[0], M.SlotRef))
-        assert(isinstance(args[1], M.SlotRef))
-        return M.SlexDef(op = M.SlotRef(name = "Slot_copy"), args = args)
-
-    def constructor(self, args):
-        assert(2 == len(args))
-        assert(isinstance(args[0], M.SlotDef))
-        assert(isinstance(args[1], M.SlotRef))
-        return [ args[0], self.assignment([ M.SlotRef(name = args[0].name), args[1] ]) ]
-
-
     #------- constants
 
     def constant(self, args):
@@ -226,3 +201,29 @@ class ExtendedDefinitionMaker(KernelDefinitionMaker):
 
     def _literal_STRING(self, val):
         return M.SlotDef(slotType = "String", constant = str(val))
+
+
+
+# syntactic shortcuts, etc
+class ExtendedDefinitionMaker(KernelDefinitionMaker):
+
+    def __init__(self):
+        KernelDefinitionMaker.__init__(self)
+
+    def _simple(self, args):
+        assert(1 == len(args))
+        return args[0]
+
+    syntactic_shortcut = _simple
+
+    def assignment(self, args):
+        assert(2 == len(args))
+        assert(isinstance(args[0], M.SlotRef))
+        assert(isinstance(args[1], M.SlotRef))
+        return M.SlexDef(op = M.SlotRef(name = "Slot_copy"), args = args)
+
+    def constructor(self, args):
+        assert(2 == len(args))
+        assert(isinstance(args[0], M.SlotDef))
+        assert(isinstance(args[1], M.SlotRef))
+        return [ args[0], self.assignment([ M.SlotRef(name = args[0].name), args[1] ]) ]

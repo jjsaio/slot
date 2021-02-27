@@ -1,6 +1,7 @@
 
 from . import model as M
 from .context import Context
+from .util import prettyJson
 
 
 def _Integer_plus(slex):
@@ -20,7 +21,9 @@ def _Slot_copy(slex):
 def builtinContext():
     ctx = Context()
     def addType(name, displayType = None, typeType = None):
-        return ctx.addNamedSlot(name, M.Slot(slotType = typeType, human = M.Human(name = name, displayType = displayType or name)))
+        s = M.Slot(slotType = typeType, human = M.Human(name = name, displayType = displayType or name))
+        ctx.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s))
+        return s
 
     generic = addType('Generic', displayType = '*')
     nat = addType('_Native', displayType = 'scalar')
@@ -31,12 +34,13 @@ def builtinContext():
     addType('MetaSlex', typeType = nat)
     slop = addType('Slop', typeType = nat)
 
-    def addBuiltin(name, handler, types):
-        ctx.addNamedSlot(name, M.Slot(slotType = slop,
-                                      data = M.Slop(params = [ M.MetaSlot(slotType = t) for t in types ],
-                                                    native = handler)))
+    def addBuiltin(name, handler, params):
+        s = M.Slot(slotType = slop,
+                   data = M.Slop(params = [ M.MetaSlot(slotType = t, human = M.Human(name = n)) for (n, t) in params ],
+                                 native = handler))
+        ctx.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s))
+        return s
 
-    addBuiltin('plus', _Integer_plus, [ integer, integer, integer ])
-    addBuiltin('Slot_copy', _Slot_copy, [ generic, generic ])
-
+    addBuiltin('plus', _Integer_plus, [ ("sum", integer), ("x", integer), ("y", integer) ])
+    addBuiltin('Slot_copy', _Slot_copy, [ ("dest", generic), ("source", generic) ])
     return ctx

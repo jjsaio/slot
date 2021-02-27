@@ -7,7 +7,7 @@ class Slot(object):
 
     def __init__(self, slotType = None, data = None, subslots = None, human = None):
         self.slotType = slotType or None  # type Slot
-        self.data = data or None  # type Object
+        self.data = data or None  # type Pointer
         self.subslots = subslots or []  # type [Slot]
         self.human = human or None  # type Human
 
@@ -45,7 +45,7 @@ class Slot(object):
         if not json:
             return self
         self.slotType = Slot().loadFromJson(json.get('slotType'))
-        self.data = Object().loadFromJson(json.get('data'))
+        self.data = json.get('data')
         self.subslots = [ Slot().loadFromJson(x) for x in json.get('subslots') or [] ]
         self.human = Human().loadFromJson(json.get('human'))
         return self
@@ -55,7 +55,7 @@ class Slot(object):
         if not skipTypes:
             d["type"] = self.typeName
         if self.slotType != None: d['slotType'] = self.slotType.json(skipTypes = skipTypes) if hasattr(self.slotType, 'json') else id(self.slotType)
-        if self.data != None: d['data'] = self.data.json(skipTypes = skipTypes) if hasattr(self.data, 'json') else id(self.data)
+        if self.data != None: d['data'] = id(self.data)
         if self.subslots != None: d['subslots'] = [ x.json(skipTypes = skipTypes) for x in self.subslots ]
         if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
         return d
