@@ -30,8 +30,9 @@ class Compiler(LoggingClass):
     def compileSlotDef(self, sd, context):
         assert(isinstance(sd, M.SlotDef))
         slot = M.MetaSlot(slotType = self._slotType(sd.slotType, context))
-        if sd.constant:
-            slot.concrete = M.Slot(slotType = slot.slotType, data = sd.constant)
+        if sd.constant is not None:
+            slot.concrete = M.Slot(slotType = slot.slotType)
+            slot.concrete.data = sd.constant # can't use ctor since gencode uses `or None`
             return context.addSlot(slot)
         else:
             slot.human = M.Human(name = sd.name)
@@ -39,16 +40,12 @@ class Compiler(LoggingClass):
 
     def compileSlotRef(self, ref, context):
         assert(isinstance(ref, M.SlotRef))
-        if ref.slex:
-            assert(isinstance(ref.slex, M.SlexDef))
-            slex = self.compileSlotDef(ref.slex)
-            assert(isinstance(slex, M.MetaSlex))
-            slot = M.MetaSlot(slotType = context.slotNamed('MetaSlex'), concrete = slex)
-        elif ref.slop:
-            assert(isinstance(ref.slex, M.SlopDef))
-            slop = self.compileSlopDef(ref.slop)
+        if ref.slop:
+            assert(isinstance(ref.slop, M.SlopDef))
+            slop = self.compileSlopDef(ref.slop, context)
             assert(isinstance(slop, M.Slop))
-            slot = M.MetaSlot(slotType = context.slotNamed('Slop'), concrete = slop)
+            c = M.Slot(slotType = context.slotNamed('Slop'), data = slop)
+            slot = M.MetaSlot(slotType = c.slotType, concrete = c)
         elif ref.slot:
             assert(isinstance(ref.slot, M.SlotDef))
             slot = self.compileSlotDef(ref.slot, context)
@@ -57,6 +54,10 @@ class Compiler(LoggingClass):
                 raise Exception("Unbound slot reference: `{}`".format(ref.name))
             slot = context.slotNamed(ref.name)
         assert(isinstance(slot, M.MetaSlot))
+        if slot.concrete:
+            assert(isinstance(slot.concrete, M.Slot))
+        if slot.instanced:
+            assert(isinstance(slot.instanced, M.Slot))
         return slot
 
     def compileSlexDef(self, slex, context):

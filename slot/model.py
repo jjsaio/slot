@@ -331,9 +331,8 @@ class SlopDef(object):
 
 class SlotRef(object):
 
-    def __init__(self, name = None, slex = None, slop = None, slot = None):
+    def __init__(self, name = None, slop = None, slot = None):
         self.name = name or ''  # type String
-        self.slex = slex or None  # type SlexDef
         self.slop = slop or None  # type SlopDef
         self.slot = slot or None  # type SlotDef
 
@@ -348,7 +347,6 @@ class SlotRef(object):
     def defaultDict(self):
         return {
             'name' : self.name or '',
-            'slex' : self.slex or None,
             'slop' : self.slop or None,
             'slot' : self.slot or None,
         }
@@ -371,7 +369,6 @@ class SlotRef(object):
         if not json:
             return self
         self.name = json.get('name')
-        self.slex = SlexDef().loadFromJson(json.get('slex'))
         self.slop = SlopDef().loadFromJson(json.get('slop'))
         self.slot = SlotDef().loadFromJson(json.get('slot'))
         return self
@@ -381,7 +378,6 @@ class SlotRef(object):
         if not skipTypes:
             d["type"] = self.typeName
         if self.name != None: d['name'] = self.name
-        if self.slex != None: d['slex'] = self.slex.json(skipTypes = skipTypes) if hasattr(self.slex, 'json') else id(self.slex)
         if self.slop != None: d['slop'] = self.slop.json(skipTypes = skipTypes) if hasattr(self.slop, 'json') else id(self.slop)
         if self.slot != None: d['slot'] = self.slot.json(skipTypes = skipTypes) if hasattr(self.slot, 'json') else id(self.slot)
         return d

@@ -4,8 +4,9 @@ import os
 from . import model as M
 from .builtin import builtinContext
 from .compile import Compiler
-from .display import displayStructure
+from .display import displayDesignation, displayStructure
 from .execute import Executor
+from .fs import fs
 from .instantiate import Instantiator
 from .logging import LoggingClass
 from .parse import Parser
@@ -20,14 +21,14 @@ class Interactive(LoggingClass):
         self._parser = Parser(mode = "interactive")
         self._compiler = Compiler()
         self._instantiator = Instantiator()
-        self._executor = Executor()
+        self._executor = Executor(self._instantiator)
         self._context = builtinContext().derive()
         self._raiseOnError = False
         self._showJson = False
         self._setup()
-        if True:
-            self.mode = "p"
+        if 1:
             self._raiseOnError = True
+            self.mode = "n"
 
     def _parse(self, theStr):
         assert(isinstance(theStr, str))
@@ -47,6 +48,9 @@ class Interactive(LoggingClass):
             return None
         return parsed
 
+    def _compileList(self, parsedList):
+        return [ self._compile(x) for x in parsedList ] if parsedList else None
+
     def _compile(self, parsed):
         if not parsed:
             return None
@@ -61,6 +65,9 @@ class Interactive(LoggingClass):
                 raise e
             return None
         return compiled
+
+    def _instantiateList(self, compiledList):
+        return [ self._instantiate(x) for x in compiledList ] if compiledList else None
 
     def _instantiate(self, compiled):
         if not compiled:
@@ -77,16 +84,23 @@ class Interactive(LoggingClass):
             return None
         return inst
 
-    def _exec(self, inst):
+    def _executeList(self, instList):
+        if not instList:
+            self.warn("Nothing to execute")
+            return False
+        for inst in instList:
+            if not self._execute(inst):
+                return False
+        return True
+
+    def _execute(self, inst):
         if not inst:
             return False
-        assert(isinstance(inst, list))
         try:
-            for slex in inst:
-                if not Executor.canExecute(slex):
-                    self.error("Cannot execute: {}".format(displayStructure(slex)))
-                    return False
-                self._executor.execute(slex)
+            if not Executor.canExecute(inst):
+                self.error("Cannot execute: {}".format(displayStructure(slex)))
+                return False
+            self._executor.execute(inst)
         except Exception as e:
             self.error("Execution error: {}".format(e))
             if self._raiseOnError:
@@ -95,13 +109,16 @@ class Interactive(LoggingClass):
         return True
 
     def _setup(self):
+        self.mode = None
         self.modes = {
-            "d" : [ "desig", "designation", "default", "normal" ],
+            "n" : [ "normal", "default" ],
             "p" : [ "parse", "tree", "parseTree" ],
             "t" : [ "tree", "parseTree" ],
             "c" : [ "compile" ],
             "i" : [ "inst", "instantiate" ],
             "e" : [ "exec", "execute" ],
+            "d" : [ "desig", "designation" ],
+            "s" : [ "struc", "structure", "structual" ]
         }
         self.commands = {
             "h" : [ "help" ],
@@ -135,7 +152,7 @@ class Interactive(LoggingClass):
             aliasMap[k] = k
             for a in v:
                 aliasMap[a] = k
-        self.mode = self.mode or aliasMap["designation"]
+        self.mode = self.mode or aliasMap["default"]
 
         while self.running:
             try:
@@ -175,23 +192,52 @@ class Interactive(LoggingClass):
         self._showResult(self._parse(resp))
 
     def _cmd_c(self, resp):
-        self._showResult(self._compile(self._parse(resp)))
+        self._showResult(self._compileList(self._parse(resp)))
 
     def _cmd_i(self, resp):
-        self._showResult(self._instantiate(self._compile(self._parse(resp))))
+        self._showResult(self._instantiateList(self._compileList(self._parse(resp))))
 
     def _cmd_e(self, resp):
-        if self._exec(self._instantiate(self._compile(self._parse(resp)))):
+        if self._executeList(self._instantiateList(self._compileList(self._parse(resp)))):
             print(" OK")
 
-    def _cmd_d(self, resp):
-        compiled = self._compile(self._parse(resp))
-        NYI
-        if isinstance(struc, M.Slot):
-            print(" " + displayStructure(struc.data))
+    def _standardHandleItem(self, parsed):
+        if parsed.fsType == fs.SlexDef:
+            return self._execute(self._instantiate(self._compile(parsed)))
+        elif parsed.fsType == fs.SlotDef:
+            return self._instantiate(self._compile(parsed))
+        elif parsed.fsType == fs.SlotRef:
+            return self._instantiator.instantiatedSlot(self._compile(parsed))
+        elif parsed.fsType == fs.SlopDef:
+            return self._compile(parsed)
         else:
-            self.warn("Designation undefined for `{}`".format(struc))
+            self.error("Unhandled parse type `{}`".format(parsed))
+            return False
 
+    def _standardHandle(self, resp):
+        last = None
+        for parsed in self._parse(resp):
+            res = self._standardHandleItem(parsed)
+            if not res:
+                break
+            if (not last) or (res != True):
+                last = res
+        return last
+
+    def _cmd_s(self, resp):
+        res = self._standardHandle(resp)
+        if res:
+            self._showResult(res)
+
+    def _showDesignation(self, struc):
+        print(" " + displayDesignation(struc))
+
+    def _cmd_n(self, resp):
+        res = self._standardHandle(resp)
+        if res == True:
+            print(" OK")
+        elif res:
+            self._showDesignation(res)
 
     def _cmd_b(self, resp):
         if not os.path.exists(resp):

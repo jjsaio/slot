@@ -77,7 +77,12 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
 
     def interactive(self, args):
         assert(1 == len(args))
-        return args[0]
+        # always returning a list simplifies interactive-mode impl
+        if isinstance(args[0], list):
+            return args[0]
+        else:
+            return [ args[0] ]
+
                
     def interpreter(self, args):
         assert(1 == len(args))
@@ -172,10 +177,6 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
         assert(isinstance(args[0], M.SlopDef))
         return M.SlotRef(slop = args[0])
 
-    def slex_ref(self, args):
-        assert(isinstance(args[0], M.SlexDef))
-        return M.SlotRef(slex = args[0])
-
     def slot_ref(self, args):
         assert(1 == len(args))
         assert(isinstance(args[0], str))
@@ -197,7 +198,9 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
         return self._token_dispatch("literal", args[0])
 
     def _literal_INTEGER(self, val):
-        return M.SlotDef(slotType = "Integer", constant = int(val))
+        sd = M.SlotDef(slotType = "Integer")
+        sd.constant = int(val) # can't use initializer b/c gencode with Object type uses "or None"
+        return sd
 
     def _literal_STRING(self, val):
         return M.SlotDef(slotType = "String", constant = str(val))

@@ -27,11 +27,10 @@ slex_args: "(" (slot ",")* slot? ")"
 
 slot_spec: slot_name (":" slot_name)?
 slot_def: "|" slot_spec "|"
-slot: slot_ref | slop_ref | slex_ref | constant
+slot: slot_ref | slop_ref | constant
 slot_name: NAME
 
 slop_ref: slop
-slex_ref: slex
 slot_ref: slot_name
 
 
