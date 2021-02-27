@@ -47,8 +47,8 @@ class Executor(LoggingClass):
         # important that this is *before* exec, in order to support recursion (re-use of MetaSlots)
         #  (we'd probably have to hold a lock (at the slop object) in a multi-threaded env)
         for ms in slop.params + slop.locals:
-            inst.uninstantiate(ms)
+            inst.uninstantiateMetaSlot(ms)
 
         # and execute
-        for slex in instantiated:
+        for slex in executables:
             self.executeSlex(slex)
