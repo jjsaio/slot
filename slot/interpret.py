@@ -3,6 +3,7 @@ from . import model as M
 from .builtin import builtinContext
 from .compile import Compiler
 from .define import Definer
+from .display import displayStructure
 from .execute import Executor
 from .fs import fs
 from .instantiate import Instantiator
@@ -12,16 +13,27 @@ from .parse import Parser, ParseTree
 
 class Interpreter(LoggingClass):
 
-    def __init__(self, parseMode = "interpreter"):
+    def __init__(self, parseMode = "interpreter", allowShortcuts = True):
         LoggingClass.__init__(self)
         #self.setLevelDebug()
-        self._parser = Parser(mode = parseMode)
+        self._parser = Parser(mode = parseMode, shortcuts = allowShortcuts)
         self._definer = Definer()
         self._compiler = Compiler()
         self._instantiator = Instantiator()
         self._executor = Executor(self._instantiator)
         self._context = builtinContext().derive()
         self.raiseOnError = False
+
+    def reset(self):
+        self._context = builtinContext().derive()
+
+    @property
+    def allowShortcuts(self):
+        return self._parser.shortcuts
+
+    @allowShortcuts.setter
+    def allowShortcuts(self, allow):
+        self._parser = Parser(mode = self._parser.mode, shortcuts = allow)
 
     def parse(self, theStr):
         assert(isinstance(theStr, str))
@@ -34,6 +46,8 @@ class Interpreter(LoggingClass):
             return None
         
     def define(self, tree):
+        if not tree:
+            return None
         assert(isinstance(tree, ParseTree))
         try:
             return self._definer.define(tree)
@@ -130,7 +144,7 @@ class Interpreter(LoggingClass):
     def handle(self, inputString):
         assert(isinstance(inputString, str))
         last = None
-        for defined in self.define(self.parse(inputString)):
+        for defined in (self.define(self.parse(inputString)) or []):
             res = self.handleDefinition(defined)
             if not res:
                 break

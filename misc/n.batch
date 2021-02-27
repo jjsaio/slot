@@ -1,0 +1,20 @@
+n 0
+n 2
+n |x|
+n Slot_copy(x,2)
+n x
+n |y|
+n plus(y,x,3)
+n y
+n ![]{}
+n ![z]{}
+n ![]{ plus(x,2,3) }
+n ![z]{ plus(z,x,4) }
+n ![z,w]{ plus(w,x,4); Slot_copy(z, w) }
+n |p|
+n Slot_copy(p, ![z,w]{ plus(w,x,4); Slot_copy(z, w) })
+n x
+n y
+n p(x,y)
+n x
+n y

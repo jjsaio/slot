@@ -33,6 +33,7 @@ class Compiler(LoggingClass):
         if sd.constant is not None:
             slot.concrete = M.Slot(slotType = slot.slotType)
             slot.concrete.data = sd.constant # can't use ctor since gencode uses `or None`
+            slot.human = M.Human(name = sd.name or "[Constant]")
             return context.addSlot(slot)
         else:
             slot.human = M.Human(name = sd.name)

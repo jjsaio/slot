@@ -149,6 +149,7 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
     def constant(self, args):
         assert(1 == len(args))
         assert(isinstance(args[0], M.SlotDef))
+        args[0].name = "[{} Constant]".format(args[0].slotType)
         return M.SlotRef(slot = args[0])
 
     def _token_dispatch(self, tokenClass, token):

@@ -22,7 +22,7 @@ def builtinContext():
     ctx = Context()
     def addType(name, displayType = None, typeType = None):
         s = M.Slot(slotType = typeType, human = M.Human(name = name, displayType = displayType or name))
-        ctx.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s))
+        ctx.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s, human = s.human))
         return s
 
     generic = addType('Generic', displayType = '*')
@@ -38,10 +38,13 @@ def builtinContext():
     slop = addType('Slop', typeType = nat)
 
     def addBuiltin(name, handler, params):
+        h = M.Human(name = name)
         s = M.Slot(slotType = slop,
                    data = M.Slop(params = [ M.MetaSlot(slotType = t, human = M.Human(name = n)) for (n, t) in params ],
-                                 native = handler))
-        ctx.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s))
+                                 native = handler,
+                                 human = h),
+                   human = h)
+        ctx.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s, human = h))
         return s
 
     addBuiltin('plus', _Integer_plus, [ ("sum", integer), ("x", integer), ("y", integer) ])

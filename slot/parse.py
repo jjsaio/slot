@@ -21,7 +21,7 @@ class Parser(object):
         if shortcuts:
             self.grammar += strWithFileAtPath(moduleFile(__file__, 'shortcuts.g'))
         else:
-            self.grammar += "syntactic_slex_shortcut: \nsyntactic_slot_shortcut: \n"
+            self.grammar += "syntactic_shortcut: \n"
         self.parser = lark.Lark(self.grammar)
 
     def parse(self, text, raise_if_not_parseable = True):

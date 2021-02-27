@@ -7,8 +7,14 @@ def _displayType(x):
 
 def displayStructure(x):
     t = type(x).__name__
-    if isinstance(x, M.Slot) or isinstance(x, M.MetaSlot):
+    if isinstance(x, M.Slot):
         d = _displayType(x.slotType)
+    elif isinstance(x, M.MetaSlot):
+        d = _displayType(x.slotType)
+        if x.concrete:
+            d += "(concrete)"
+        elif x.instanced:
+            d += "(instanced)"
     elif isinstance(x, M.Slop):
         d = "..." # TBD
     elif isinstance(x, M.Slex):

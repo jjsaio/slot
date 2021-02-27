@@ -16,7 +16,7 @@ class Interactive(LoggingClass):
         self._interpreter = Interpreter(parseMode = "interactive")
         self._showJson = False
         self._setup()
-        if 1:
+        if 0:
             self._interpreter.raiseOnError = True
             self.mode = "n"
 
@@ -24,7 +24,6 @@ class Interactive(LoggingClass):
         self.mode = None
         self.modes = {
             "n" : [ "normal", "default", "desig", "designation" ],
-            "s" : [ "struc", "structure", "structual" ],
             "p" : [ "parse" ],
             "t" : [ "tree", "parseTree" ],
             "d" : [ "define", "def" ],
@@ -114,13 +113,6 @@ class Interactive(LoggingClass):
         if i.execute(i.instantiate(i.compile(i.define(i.parse(resp))))):
             print(" OK")
 
-    def _cmd_s(self, resp):
-        res = self._interpreter.handle(resp)
-        if res == True:
-            print(" OK")
-        elif res:
-            self._showResult(res)
-
     def _showDesignation(self, struc):
         print(" " + displayDesignation(struc))
 
@@ -162,15 +154,16 @@ class Interactive(LoggingClass):
         self.info("batch done")
 
     def _cmd_w(self, struc):
-        self._context = Context()
-        self.info("context wiped")
+        self._interpreter.reset()
+        self.info("interpreter reset")
 
     def _cmd_v(self, rest):
-        print(self._context.dump(all = (rest and (rest[0] == "a"))))
+        print(self._interpreter._context.dump(all = (rest and (rest[0] == "a"))))
 
     def _cmd_x(self, rest):
-        self._raiseOnError = not self._raiseOnError
-        self.info("{}raising exceptions on error".format("" if self._raiseOnError else "not " ))
+        i = self._interpreter
+        i.raiseOnError = not i.raiseOnError
+        self.info("{}raising exceptions on error".format("" if i.raiseOnError else "not " ))
 
     def _cmd_g(self, _):
         if self.isLevelDebug():
@@ -181,12 +174,12 @@ class Interactive(LoggingClass):
             self.debug("debug level set")
 
     def _cmd_k(self, _):
-        if self._parser.shortcuts:
-            self._parser = Parser(mode = "interactive", shortcuts = False)
-            self.info("kernel mode parsing (no syntactic shortcuts)")
+        i = self._interpreter
+        i.allowShortcuts = not i.allowShortcuts
+        if i.allowShortcuts:
+            self.info("general parsing (shortcuts allowed)")
         else:
-            self._parser = Parser(mode = "interactive", shortcuts = True)
-            self.info("general parsing (shortcuts allowed")
+            self.info("kernel mode parsing (no syntactic shortcuts)")
 
     def _cmd_j(self, _):
         self._showJson = not self._showJson

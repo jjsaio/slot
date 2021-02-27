@@ -19,7 +19,10 @@ class Instantiator(LoggingClass):
 
     def instantiateMetaSlot(self, mslot, slot = None):
         assert(mslot and isinstance(mslot, M.MetaSlot))
-        assert((not mslot.concrete) and (not mslot.instanced))
+        if mslot.concrete:
+            raise Exception("Cannot instantiate concrete MetaSlot `{}`".format(mslot.human.name if mslot.human else mslot))
+        if mslot.instanced:
+            raise Exception("MetaSlot `{}` is already instantiated in the current context".format(mslot.human.name if mslot.human else mslot))
         if slot:
             assert(isinstance(slot, M.Slot))
             mslot.instanced = slot
