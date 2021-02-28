@@ -8,6 +8,7 @@ class Executor(LoggingClass):
     def __init__(self, instantiator):
         LoggingClass.__init__(self)
         self._instantiator = instantiator
+        self._currentNode = None
         #self.setLevelDebug()
 
     def canExecute(obj):
@@ -17,13 +18,23 @@ class Executor(LoggingClass):
         self.executeSlex(slex)
 
     def executeSlex(self, slex):
-        cur = slex
-        while cur:
-            self._executeSlex(cur)
-            cur = cur.next
-
-    def _executeSlex(self, slex):
         assert(isinstance(slex, M.Slex))
+        cur = M.ExecutionNode(slex = slex)
+        if self._currentNode:
+            cur.next = self._currentNode.next
+            self._currentNode.next = cur
+            return
+        while cur:
+            self._currentNode = cur
+            self._executeNode(cur)
+            cur.executed = True
+            cur = cur.next
+        self._currentNode = None
+
+    def _executeNode(self, exNode):
+        slex = exNode.slex
+        assert(isinstance(slex, M.Slex))
+        assert(not exNode.executed)
         self.debug("execSlex:", slex)
 
         # get the op
@@ -34,7 +45,7 @@ class Executor(LoggingClass):
         # native handling can just pass the args directly
         if slop.native:
             self.debug("native", slex)
-            slop.native(slex, self)
+            slop.native(exNode, self)
             return
 
         # instantiate the parameters (using the args)
@@ -49,10 +60,12 @@ class Executor(LoggingClass):
 
         # instantiate the slexes, set up continuations
         self.debug("instantiate drop steps:", slop.steps)
-        myNext = slex.next
-        cur = slex
+        myNext = exNode.next
+        cur = exNode
         for ms in slop.steps:
-            cur.next = inst.instantiateMetaSlex(ms)
+            step = M.ExecutionNode(slex = inst.instantiateMetaSlex(ms))
+            step.parent = exNode
+            cur.next = step
             cur = cur.next
         cur.next = myNext
 
@@ -63,4 +76,4 @@ class Executor(LoggingClass):
             inst.uninstantiateMetaSlot(ms)
 
         # continuation is set up and will be next executed
-        self.debug("exec done, coming up:", slex.next)
+        self.debug("exec done, coming up:", exNode.next)

@@ -73,7 +73,6 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
                 slopDef.steps.append(step)
         for s in slopDef.params + slopDef.locals:
             assert(isinstance(s, M.SlotDef))
-            assert(s.name)
         return slopDef
 
     def slop_params(self, args):

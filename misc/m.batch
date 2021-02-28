@@ -1,0 +1,37 @@
+n |c0| > 0
+n |c2| > 2
+n |x|
+n |u|
+n |v|
+n Generic_up(x, u)
+n Generic_up(c2, v)
+n Slot_copy(u, v)
+n x
+n |y|
+n |c3| > 3
+n plus(y,x,c3)
+n y
+n |f0| > ![]{}
+n |f1| > ![z]{}
+n |f2| > ![]{ plus(x,c2,c3) }
+n |c4| > 4
+n |f3| > ![z]{ plus(z,x,c4) }
+n |f4| > ![z,w]{ plus(w,x,c4); Generic_up(z, u); Generic_up(w, v); Slot_copy(u, v) }
+n |c81| > 81
+n |p| > ![z,w]{ plus(w,x,c4); Generic_up(z, u); Generic_up(w, v); Slot_copy(u, v); plus(z, z, c81) }
+n x
+n y
+n p(x,y)
+n x
+n y
+n |a|>7
+n |b|
+n b = a
+n b
+n |zzz|
+n |q| > ![z,w]{ ExecutionNode_current(zzz); ExecutionNode_printStack(zzz); ExecutionNode_printUpcoming(zzz); plus(w,x,c4); Generic_up(z, u); Generic_up(w, v); Slot_copy(u, v); plus(z, z, c81) }
+n q(x,y)
+n |r| > ![g]{ q(g, g); plus(x, y, g); b = x }
+n r(y)
+n y
+

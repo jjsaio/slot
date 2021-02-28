@@ -31,19 +31,21 @@ class Linker(LoggingClass):
     def linkSlotDef(self, sd, context):
         assert(isinstance(sd, M.SlotDef))
         assert(not sd.linked)
-        slot = M.MetaSlot(slotType = self._slotType(sd.slotType, context))
-        assert(slot.slotType)
+        mslot = M.MetaSlot(slotType = self._slotType(sd.slotType, context))
+        assert(mslot.slotType)
+        if sd.name:
+            mslot.human = M.Human(name = sd.name)
+            context.addNamedSlot(sd.name, mslot)
+        else:
+            context.addSlot(mslot)
         if sd.slop:
             assert(not sd.constant)
-            slot.concrete = M.Slot(slotType = slot.slotType, data = self.linkSlopDef(sd.slop, context))
+            slop = self.linkSlopDef(sd.slop, context)
+            slop.human = mslot.human
+            mslot.concrete = M.Slot(slotType = mslot.slotType, data = slop, human = mslot.human)
         elif sd.constant:
-            slot.concrete = M.Slot(slotType = slot.slotType)
-            slot.concrete.data = sd.constant[0] # can't use ctor since gencode uses `or None`
-        if sd.name:
-            slot.human = M.Human(name = sd.name)
-            mslot = context.addNamedSlot(sd.name, slot)
-        else:
-            mslot = context.addSlot(slot)
+            mslot.concrete = M.Slot(slotType = mslot.slotType)
+            mslot.concrete.data = sd.constant[0] # can't use ctor since gencode uses `or None`
         assert(isinstance(mslot, M.MetaSlot))
         sd.linked = mslot
         return mslot

@@ -1133,6 +1133,7 @@ SlopDef = 1152
 SlotDef = 1153
 SlexDef = 1154
 SlotType = 1155
+ExecutionNode = 1156
 
 g_fsMap = {
     APIChannel : "APIChannel",
@@ -1241,6 +1242,7 @@ g_fsMap = {
     Encryptor : "Encryptor",
     EndCall : "EndCall",
     Error : "Error",
+    ExecutionNode : "ExecutionNode",
     Expr : "Expr",
     File : "File",
     FileDone : "FileDone",

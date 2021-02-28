@@ -5,7 +5,8 @@ from .display import displayDesignation
 from .util import prettyJson
 
 
-def _Integer_plus(slex, executor):
+def _Integer_plus(slexNode, executor):
+    slex = slexNode.slex
     slop = slex.op
     # these asserts should be done by _execute, just doing here for illustration
     if False:
@@ -16,34 +17,73 @@ def _Integer_plus(slex, executor):
     dst, a, b = slex.args
     dst.data = a.data + b.data
 
-def _Slot_copy(slex, executor):
+def _Slot_copy(slexNode, executor):
+    slex = slexNode.slex
     dst, src = slex.args
     if not (isinstance(dst.data, M.Slot) and isinstance(src.data, M.Slot)): # should have been type-verified by _execute, can nuke once good
         raise Exception("Attempt to copy non-slots: `{}` <- `{}`".format(displayDesignation(dst), displayDesignation(src)))
     # TODO: runtime type compat? better of course if it's link-time...
     dst.data.data = src.data.data
 
-def _Generic_up(slex, executor):
+def _Generic_up(slexNode, executor):
+    slex = slexNode.slex
     source, slot = slex.args
     slot.data = source
 
-def _Slot_down(slex, executor):
+def _Slot_down(slexNode, executor):
+    slex = slexNode.slex
     slot, dest = slex.args
     if not isinstance(slot.data, M.Slot):
         raise Exception("Attempt to `down` non-structure `{}`".format(displayDesignation(slot)))
     # TODO: runtime type compat?
     dest.data = slot.data.data
 
-def _Slop_execute(slex, executor):
+def _Slop_execute(slexNode, executor):
+    slex = slexNode.slex
     slop = slex.args[0]
     assert(isinstance(slop.data, M.Slop))
-    executor.execute(M.Slex(op = slop.data))
+    executor.executeSlex(M.Slex(op = slop.data))
 
-def _Slop_execute_if(slex, executor):
+def _Slop_execute_if(slexNode, executor):
+    slex = slexNode.slex
     slop, cond = slex.args
     if cond.data:
         assert(isinstance(slop.data, M.Slop))
-        executor.execute(M.Slex(op = slop.data))
+        executor.executeSlex(M.Slex(op = slop.data))
+
+def _ExecutionNode_current(slexNode, executor):
+    slex = slexNode.slex
+    dest = slex.args[0]
+    # TODO: runtime type compat? better of course if it's link-time...
+    dest.data = slexNode
+
+def _ExecutionNode_printStack(slexNode, executor):
+    slex = slexNode.slex
+    slot = slex.args[0]
+    cur = slot.data
+    if not isinstance(cur, M.ExecutionNode):
+        raise Exception("Not an ExecutionNode: `{}`".format(displayDesignation(slot)))
+    level = 0
+    while cur:
+        print("  [{}] {}".format(level, cur.slex.op.human.name))
+        level += 1
+        cur = cur.parent
+
+def _ExecutionNode_printUpcoming(slexNode, executor):
+    slex = slexNode.slex
+    slot = slex.args[0]
+    cur = slot.data
+    if not isinstance(cur, M.ExecutionNode):
+        raise Exception("Not an ExecutionNode: `{}`".format(displayDesignation(slot)))
+    while cur:
+        if cur.executed:
+            prefix = " \-*"
+        elif cur == slexNode:
+            prefix = "  @ "
+        else:
+            prefix = " \->"
+        print("  {} {}".format(prefix, cur.slex.op.human.name))
+        cur = cur.next
 
 
 def builtinContext():
@@ -68,6 +108,7 @@ def builtinContext():
     addType('Slex')
     addType('MetaSlex')
     slop = addType('Slop')
+    exn = addType('ExecutionNode')
 
     def addBuiltin(name, handler, params):
         h = M.Human(name = name)
@@ -85,5 +126,8 @@ def builtinContext():
     addBuiltin('Slot_down', _Slot_down, [ ("slot", slot), ("dest", generic) ])
     addBuiltin('Slop_execute', _Slop_execute, [ ( "slop", slop ) ])
     addBuiltin('Slop_execute_if', _Slop_execute_if, [ ( "slop", slop ), ("cond", boolean ) ])
+    addBuiltin('ExecutionNode_current', _ExecutionNode_current, [ ( "node", exn ) ])
+    addBuiltin('ExecutionNode_printStack', _ExecutionNode_printStack, [ ( "node", exn ) ])
+    addBuiltin('ExecutionNode_printUpcoming', _ExecutionNode_printUpcoming, [ ( "node", exn ) ])
 
     return ctx
