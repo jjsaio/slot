@@ -34,4 +34,5 @@ n q(x,y)
 n |r| > ![g]{ q(g, g); plus(x, y, g); b = x }
 n r(y)
 n y
+n ExecutionNode_printNextInstructions(zzz)
 

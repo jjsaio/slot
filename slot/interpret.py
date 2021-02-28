@@ -22,7 +22,6 @@ class Interpreter(LoggingClass):
         self._instantiator = Instantiator()
         self._executor = Executor(self)
         self._context = builtinContext().derive()
-        self.raiseOnError = False
 
 
     def reset(self):
@@ -51,9 +50,7 @@ class Interpreter(LoggingClass):
             return self._parser.parse(theStr)
         except Exception as e:
             self.error("Syntax error: {}".format(e))
-            if self.raiseOnError:
-                raise e
-            return None
+            raise e
 
 
     @property
@@ -68,9 +65,7 @@ class Interpreter(LoggingClass):
             return self._definer.define(tree)
         except Exception as e:
             self.error("Definition failed: {}".format(e))
-            if self.raiseOnError:
-                raise e
-            return None
+            raise e
 
 
     @property
@@ -95,9 +90,7 @@ class Interpreter(LoggingClass):
             return self._linker.link(parsed, self._context)
         except Exception as e:
             self.error("Compilation failed: {}".format(e))
-            if self.raiseOnError:
-                raise e
-            return None
+            raise e
 
 
     @property
@@ -122,9 +115,7 @@ class Interpreter(LoggingClass):
             return self._instantiator.instantiate(linked)
         except Exception as e:
             self.error("Instantiation failed: {}".format(e))
-            if self.raiseOnError:
-                raise e
-            return None
+            raise e
 
 
     @property
@@ -154,9 +145,7 @@ class Interpreter(LoggingClass):
             return True
         except Exception as e:
             self.error("Execution failed: {}".format(e))
-            if self.raiseOnError:
-                raise e
-            return False
+            raise e
 
 
     def handleDefinition(self, defined):
@@ -174,20 +163,11 @@ class Interpreter(LoggingClass):
 
     def handle(self, inputString):
         assert(isinstance(inputString, str))
-        _raiseOnError = self.raiseOnError
-        self.raiseOnError = True
-        try:
-            last = None
-            for defined in (self.define(self.parse(inputString)) or []):
-                res = self.handleDefinition(defined)
-                if not res:
-                    break
-                if (not last) or (res != True):
-                    last = res
-            return last
-        except Exception as e:
-            if _raiseOnError:
-                raise e
-            return None
-        finally:
-            self.raiseOnError = _raiseOnError
+        last = None
+        for defined in (self.define(self.parse(inputString)) or []):
+            res = self.handleDefinition(defined)
+            if not res:
+                break
+            if (not last) or (res != True):
+                last = res
+        return last

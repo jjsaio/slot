@@ -14,11 +14,12 @@ class Interactive(LoggingClass):
         LoggingClass.__init__(self, initLogging = True, loggingFormat = LoggingClass.noStampFormat)
         #self.setLevelDebug()
         self._interpreter = Interpreter(parseMode = "interactive")
+        self._raiseOnError = False
         self._showJson = False
         self._setup()
         if 0:
             self._interpreter.allowShortcuts = False
-            self._interpreter.raiseOnError = False
+            self._raiseOnError = False
             self.mode = "n"
 
     def _setup(self):
@@ -74,11 +75,14 @@ class Interactive(LoggingClass):
                 return
             if not resp:
                 continue
-            elif resp[0] == '.':
-                self._doCommand(resp[1:])
-            else:
-                self._dispatch(self.mode, resp)
-
+            try:
+                if resp[0] == '.':
+                    self._doCommand(resp[1:])
+                else:
+                    self._dispatch(self.mode, resp)
+            except Exception as e:
+                if self._raiseOnError:
+                    raise e
 
     def _showResult(self, struc):
         if not struc:
@@ -162,9 +166,8 @@ class Interactive(LoggingClass):
         print(self._interpreter._context.dump(all = (rest and (rest[0] == "a"))))
 
     def _cmd_x(self, rest):
-        i = self._interpreter
-        i.raiseOnError = not i.raiseOnError
-        self.info("{}raising exceptions on error".format("" if i.raiseOnError else "not " ))
+        self._raiseOnError = not self._raiseOnError
+        self.info("{}raising exceptions on error".format("" if self._raiseOnError else "not " ))
 
     def _cmd_g(self, _):
         if self.isLevelDebug():
