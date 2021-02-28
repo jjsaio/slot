@@ -28,7 +28,7 @@ class Interactive(LoggingClass):
             "p" : [ "parse" ],
             "t" : [ "tree", "parseTree" ],
             "d" : [ "define", "def" ],
-            "c" : [ "compile" ],
+            "l" : [ "link" ],
             "i" : [ "inst", "instantiate" ],
             "e" : [ "exec", "execute" ],
         }
@@ -103,15 +103,15 @@ class Interactive(LoggingClass):
 
     def _cmd_c(self, resp):
         i = self._interpreter
-        self._showResult(i.compile(i.define(i.parse(resp))))
+        self._showResult(i.link(i.define(i.parse(resp))))
 
     def _cmd_i(self, resp):
         i = self._interpreter
-        self._showResult(i.instantiate(i.compile(i.define(i.parse(resp)))))
+        self._showResult(i.instantiate(i.link(i.define(i.parse(resp)))))
 
     def _cmd_e(self, resp):
         i = self._interpreter
-        if i.execute(i.instantiate(i.compile(i.define(i.parse(resp))))):
+        if i.execute(i.instantiate(i.link(i.define(i.parse(resp))))):
             print(" OK")
 
     def _showDesignation(self, struc):

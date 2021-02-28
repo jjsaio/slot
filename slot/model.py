@@ -425,12 +425,12 @@ class SlotRef(object):
 
 class SlotDef(object):
 
-    def __init__(self, name = None, slotType = None, constant = None, slop = None, compiled = None):
+    def __init__(self, name = None, slotType = None, constant = None, slop = None, linked = None):
         self.name = name or ''  # type String
         self.slotType = slotType or ''  # type String
         self.constant = constant or None  # type Object
         self.slop = slop or None  # type SlopDef
-        self.compiled = compiled or None  # type MetaSlot
+        self.linked = linked or None  # type MetaSlot
 
     @property
     def typeName(self):
@@ -446,7 +446,7 @@ class SlotDef(object):
             'slotType' : self.slotType or '',
             'constant' : self.constant or None,
             'slop' : self.slop or None,
-            'compiled' : self.compiled or None,
+            'linked' : self.linked or None,
         }
 
     def _description(self):
@@ -470,7 +470,7 @@ class SlotDef(object):
         self.slotType = json.get('slotType')
         self.constant = Object().loadFromJson(json.get('constant'))
         self.slop = SlopDef().loadFromJson(json.get('slop'))
-        self.compiled = MetaSlot().loadFromJson(json.get('compiled'))
+        self.linked = MetaSlot().loadFromJson(json.get('linked'))
         return self
 
     def json(self, skipTypes = False):
@@ -481,7 +481,7 @@ class SlotDef(object):
         if self.slotType != None: d['slotType'] = self.slotType
         if self.constant != None: d['constant'] = self.constant.json(skipTypes = skipTypes) if hasattr(self.constant, 'json') else id(self.constant)
         if self.slop != None: d['slop'] = self.slop.json(skipTypes = skipTypes) if hasattr(self.slop, 'json') else id(self.slop)
-        if self.compiled != None: d['compiled'] = self.compiled.json(skipTypes = skipTypes) if hasattr(self.compiled, 'json') else id(self.compiled)
+        if self.linked != None: d['linked'] = self.linked.json(skipTypes = skipTypes) if hasattr(self.linked, 'json') else id(self.linked)
         return d
 
 class SlexDef(object):

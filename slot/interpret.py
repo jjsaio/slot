@@ -1,7 +1,7 @@
 
 from . import model as M
 from .builtin import builtinContext
-from .compile import Compiler
+from .link import Linker
 from .define import Definer
 from .display import displayStructure
 from .execute import Executor
@@ -18,7 +18,7 @@ class Interpreter(LoggingClass):
         #self.setLevelDebug()
         self._parser = Parser(mode = parseMode, shortcuts = allowShortcuts)
         self._definer = Definer()
-        self._compiler = Compiler()
+        self._linker = Linker()
         self._instantiator = Instantiator()
         self._executor = Executor(self._instantiator)
         self._context = builtinContext().derive()
@@ -61,44 +61,44 @@ class Interpreter(LoggingClass):
                 raise e
             return None
 
-    def compile(self, parsed):
+    def link(self, parsed):
         if not parsed:
             return None
         elif isinstance(parsed, list):
-            return [ self._compile(x) for x in parsed ]
+            return [ self._link(x) for x in parsed ]
         else:
-            return self._compile(parsed)
+            return self._link(parsed)
 
-    def _compile(self, parsed):
+    def _link(self, parsed):
         if not parsed:
             return None
-        if not Compiler.canCompile(parsed):
-            self.error("Cannot compile: {}".format(displayStructure(parsed)))
+        if not Linker.canLink(parsed):
+            self.error("Cannot link: {}".format(displayStructure(parsed)))
             return None
         try:
-            return self._compiler.compile(parsed, self._context)
+            return self._linker.link(parsed, self._context)
         except Exception as e:
             self.error("Compilation failed: {}".format(e))
             if self.raiseOnError:
                 raise e
             return None
 
-    def instantiate(self, compiled):
-        if not compiled:
+    def instantiate(self, linked):
+        if not linked:
             return None
-        elif isinstance(compiled, list):
-            return [ self._instantiate(x) for x in compiled ]
+        elif isinstance(linked, list):
+            return [ self._instantiate(x) for x in linked ]
         else:
-            return self._instantiate(compiled)
+            return self._instantiate(linked)
 
-    def _instantiate(self, compiled):
-        if not compiled:
+    def _instantiate(self, linked):
+        if not linked:
             return None
-        if not Instantiator.canInstantiate(compiled):
-            self.error("Cannot instantiate: {}".format(displayStructure(compiled)))
+        if not Instantiator.canInstantiate(linked):
+            self.error("Cannot instantiate: {}".format(displayStructure(linked)))
             return None
         try:
-            return self._instantiator.instantiate(compiled)
+            return self._instantiator.instantiate(linked)
         except Exception as e:
             self.error("Instantiation failed: {}".format(e))
             if self.raiseOnError:
@@ -134,13 +134,13 @@ class Interpreter(LoggingClass):
 
     def handleDefinition(self, defined):
         if defined.fsType == fs.SlexDef:
-            return self.execute(self.instantiate(self.compile(defined)))
+            return self.execute(self.instantiate(self.link(defined)))
         elif defined.fsType == fs.SlotDef:
-            return self.instantiate(self.compile(defined))
+            return self.instantiate(self.link(defined))
         elif defined.fsType == fs.SlotRef:
-            return self._instantiator.instantiatedSlot(self.compile(defined))
+            return self._instantiator.instantiatedSlot(self.link(defined))
         elif defined.fsType == fs.SlopDef:
-            return self.compile(defined)
+            return self.link(defined)
         else:
             self.error("Unhandled definition type `{}`".format(defined))
             return False
