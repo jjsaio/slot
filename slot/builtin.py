@@ -18,7 +18,8 @@ def _Integer_plus(slex, executor):
 
 def _Slot_copy(slex, executor):
     dst, src = slex.args
-    assert(isinstance(dst.data, M.Slot) and isinstance(src.data, M.Slot)) # should have been done by _execute, can nuke once good
+    if not (isinstance(dst.data, M.Slot) and isinstance(src.data, M.Slot)): # should have been type-verified by _execute, can nuke once good
+        raise Exception("Attempt to copy non-slots: `{}` <- `{}`".format(displayDesignation(dst), displayDesignation(src)))
     # TODO: runtime type compat? better of course if it's compile-time...
     dst.data.data = src.data.data
 

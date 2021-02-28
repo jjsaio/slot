@@ -32,8 +32,11 @@ class Compiler(LoggingClass):
         assert(isinstance(sd, M.SlotDef))
         assert(not sd.compiled)
         slot = M.MetaSlot(slotType = self._slotType(sd.slotType, context))
-        if sd.constant:
-            assert(slot.slotType)
+        assert(slot.slotType)
+        if sd.slop:
+            assert(not sd.constant)
+            slot.concrete = M.Slot(slotType = slot.slotType, data = self.compileSlopDef(sd.slop, context))
+        elif sd.constant:
             slot.concrete = M.Slot(slotType = slot.slotType)
             slot.concrete.data = sd.constant[0] # can't use ctor since gencode uses `or None`
         if sd.name:

@@ -16,7 +16,7 @@ class Interactive(LoggingClass):
         self._interpreter = Interpreter(parseMode = "interactive")
         self._showJson = False
         self._setup()
-        if 1:
+        if 0:
             self._interpreter.allowShortcuts = False
             self._interpreter.raiseOnError = False
             self.mode = "n"
@@ -135,9 +135,9 @@ class Interactive(LoggingClass):
             self.error("Opening batch: ", e)
             return
         self.info("batch start: ", resp)
-        self._hasError = False
+        self._interpreter._hasError = False
         for line in batch:
-            if self._hasError:
+            if self._interpreter._hasError:
                 break
             cmd, rest = line[:1], line[1:].strip()
             if (not cmd) or (cmd == '#'):

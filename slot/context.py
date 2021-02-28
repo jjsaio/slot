@@ -14,16 +14,15 @@ class Context(LoggingClass):
 
     def dump(self, all = False):
         lines = [ "Context @ {}".format(id(self)) ]
-        for name in sorted(self._namedSlots.keys()):
-            s = self._namedSlots[name]
-            assert(isinstance(s, M.MetaSlot))
-            slot = s.concrete or s.instanced
-            assert(slot)
-            lines.append("  {} -> {} => {}".format(name, displayStructure(slot), displayDesignation(slot)))
-        for s in self._anonymousSlots:
-            assert(isinstance(s, M.MetaSlot))
-            slot = s.concrete or s.instanced
-            lines.append("  ANON  {} => {}".format(displayStructure(sslot), displayDesignation(slot)))
+        slots = [ (name, self._namedSlots[name]) for name in sorted(self._namedSlots.keys()) ] + [ (None, s) for s in self._anonymousSlots ]
+        for name, mslot in slots:
+            assert(isinstance(mslot, M.MetaSlot))
+            line = ' "{}"'.format(name) if name else "  ANON"
+            line += ("\t" + displayStructure(mslot))
+            slot = mslot.concrete or mslot.instanced
+            if slot:
+                line += "\t:  {} \t=> \t{}".format(displayStructure(slot), displayDesignation(slot))
+            lines.append(line)
         dmp = "\n".join(lines)
         if all and self._parent:
             dmp += ("\nParent " + self._parent.dump(all = True))
