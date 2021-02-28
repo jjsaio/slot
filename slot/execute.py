@@ -17,7 +17,14 @@ class Executor(LoggingClass):
         self.executeSlex(slex)
 
     def executeSlex(self, slex):
+        cur = slex
+        while cur:
+            self._executeSlex(cur)
+            cur = cur.next
+
+    def _executeSlex(self, slex):
         assert(isinstance(slex, M.Slex))
+        self.debug("execSlex:", slex)
 
         # get the op
         slop = slex.op
@@ -26,6 +33,7 @@ class Executor(LoggingClass):
 
         # native handling can just pass the args directly
         if slop.native:
+            self.debug("native", slex)
             slop.native(slex, self)
             return
 
@@ -39,9 +47,14 @@ class Executor(LoggingClass):
         for loc in slop.locals:
             inst.instantiateMetaSlot(loc)
 
-        # instantiate the slexes
+        # instantiate the slexes, set up continuations
         self.debug("instantiate drop steps:", slop.steps)
-        executables = [ inst.instantiateMetaSlex(ms) for ms in slop.steps ]
+        myNext = slex.next
+        cur = slex
+        for ms in slop.steps:
+            cur.next = inst.instantiateMetaSlex(ms)
+            cur = cur.next
+        cur.next = myNext
 
         # uninstantiate the MetaSlots we instantiated
         # important that this is *before* exec, in order to support recursion (re-use of MetaSlots)
@@ -49,6 +62,5 @@ class Executor(LoggingClass):
         for ms in slop.params + slop.locals:
             inst.uninstantiateMetaSlot(ms)
 
-        # and execute
-        for slex in executables:
-            self.executeSlex(slex)
+        # continuation is set up and will be next executed
+        self.debug("exec done, coming up:", slex.next)

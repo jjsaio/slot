@@ -58,9 +58,10 @@ class Slot(object):
 
 class Slex(object):
 
-    def __init__(self, op = None, args = None):
+    def __init__(self, op = None, args = None, next = None):
         self.op = op or None  # type Slop
         self.args = args or []  # type [Slot]
+        self.next = next or None  # type Slex
 
     @property
     def typeName(self):
@@ -74,6 +75,7 @@ class Slex(object):
         return {
             'op' : self.op or None,
             'args' : self.args or [],
+            'next' : self.next or None,
         }
 
     def _description(self):
@@ -95,6 +97,7 @@ class Slex(object):
             return self
         self.op = Slop().loadFromJson(json.get('op'))
         self.args = [ Slot().loadFromJson(x) for x in json.get('args') or [] ]
+        self.next = Slex().loadFromJson(json.get('next'))
         return self
 
     def json(self, skipTypes = False):
@@ -103,6 +106,7 @@ class Slex(object):
             d["type"] = self.typeName
         if self.op != None: d['op'] = self.op.json(skipTypes = skipTypes) if hasattr(self.op, 'json') else id(self.op)
         if self.args != None: d['args'] = [ x.json(skipTypes = skipTypes) for x in self.args ]
+        if self.next != None: d['next'] = self.next.json(skipTypes = skipTypes) if hasattr(self.next, 'json') else id(self.next)
         return d
 
 class SlotType(object):
