@@ -32,7 +32,6 @@ def displayStructure(x):
 
 _designationTypeLookup = {
     "NoneType" : "Nil",
-    "Nil" : "Nil",
     "Boolean" : "Truth Value",
     "bool" : "Truth Value",
     "Integer" : "Number",
@@ -43,6 +42,15 @@ _designationTypeLookup = {
     "String" : "Word",
     "Slop" : "Behavior",
     "Slex" : "Process",
+    "Slot" : "Structure",
+}
+
+_structureTypeLookup = {
+    "NoneType" : "Nil",
+    "bool" : "Boolean",
+    "int" : "Integer",
+    "str" : "String",
+    "float" : "Real",
 }
 
 def displayDesignation(x):
@@ -54,11 +62,14 @@ def displayDesignation(x):
             t = type(x.data).__name__
         if hasattr(x.data, 'fsType'): # is it a model object?
             d = "..."
+            if isinstance(x.data, M.Slot):
+                st = type(x.data.data).__name__
+                d = _structureTypeLookup.get(st, st) + "..."
         elif (x.data == None):
             d = 'Nil'
         else:
             d = str(x.data)
-    if (not t) or (t not in _designationTypeLookup):
+    if not t:
         #print(t, x)
         return "{Undefined designation}"
-    return "{{{}:{}}}".format(_designationTypeLookup[t], d)
+    return "{{{}:{}}}".format(_designationTypeLookup.get(t, t), d)

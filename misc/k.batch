@@ -1,0 +1,7 @@
+n |x|>2
+n |u|
+n Generic_up(x,u)
+n u
+n |v|
+n Generic_up(u, v)
+n v

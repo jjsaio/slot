@@ -34,6 +34,10 @@ class Interpreter(LoggingClass):
     @allowShortcuts.setter
     def allowShortcuts(self, allow):
         self._parser = Parser(mode = self._parser.mode, shortcuts = allow)
+        if self._parser.shortcuts:
+            self.debug("general parsing (shortcuts allowed)")
+        else:
+            self.debug("kernel mode parsing (no syntactic shortcuts)")
 
     def parse(self, theStr):
         assert(isinstance(theStr, str))

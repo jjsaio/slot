@@ -16,8 +16,9 @@ class Interactive(LoggingClass):
         self._interpreter = Interpreter(parseMode = "interactive")
         self._showJson = False
         self._setup()
-        if 0:
-            self._interpreter.raiseOnError = True
+        if 1:
+            self._interpreter.allowShortcuts = False
+            self._interpreter.raiseOnError = False
             self.mode = "n"
 
     def _setup(self):

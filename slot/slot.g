@@ -7,48 +7,43 @@
 //   --> another context you can merge-in; probably do objects first, then get there
 interpreter: slop_body
 
-// interactive mode
-interactive: slop_step | slop | slot_ref | constant | up
+// interactive mode: individual steps or ability to see slots
+interactive: slop_step | slot
+
 
 //---------------------
-// kernel defs
+// kernel
 //---------------------
-
 
 slop: "!" slop_params "{" slop_body "}"
 slop_params: "[" (slot_spec ",")* slot_spec? "]"
 slop_body: (slop_step ";")* slop_step?
-slop_step: slex | slot_def | syntactic_shortcut
+slop_step: slot_def | slex | syntactic_shortcut
 
 slex: slex_call
 slex_call: slex_op slex_args
 slex_op: slot
 slex_args: "(" (slot ",")* slot? ")"
 
-slot_spec: slot_name (":" slot_name)?
-slot_def: "|" slot_spec "|"
-slot: slot_ref | slop_ref | constant | up
+slot_spec: slot_name (":" slot_name )?
+slot_def: "|" slot_spec "|" (">" constant)?
+slot: slot_ref
 slot_name: NAME
-
-slop_ref: slop
 slot_ref: slot_name
 
 
 //----------------------
-// {a,de}scension
+// constants
 //----------------------
 
-up: "↑" slot
-down: "↓" slot_ref
-
-
-//----------------------
-// constants, etc
-//----------------------
-
-constant: literal
+constant: slop | literal
 
 literal: STRING | INTEGER | REAL | BOOLEAN | NIL
+
+
+//----------------------
+// guts
+//----------------------
 
 DIGIT: "0".."9"
 LETTER: "a".."z" | "A".."Z"

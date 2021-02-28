@@ -98,6 +98,9 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
     def slex_call(self, args):
         assert(2 == len(args))
         assert(isinstance(args[0], M.SlotRef))
+        assert(isinstance(args[1], list))
+        for arg in args[1]:
+            assert(isinstance(arg, M.SlotRef))
         return M.SlexDef(op = args[0], args = args[1])
 
     def slex_op(self, args):
@@ -119,10 +122,16 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
         return slotDef
 
     def slot_def(self, args):
-        assert(len(args) == 1)
-        sd = args[0]
-        assert(isinstance(sd, M.SlotDef))
-        return sd
+        for arg in args:
+            assert(isinstance(arg, M.SlotDef))
+        if len(args) == 2:
+            spec, const = args
+            assert((not spec.slotType) or (spec.slotType == const.slotType))
+            assert(not const.name)
+            const.name = spec.name
+            return const
+        else:
+            return args[0]
 
     def slot(self, args):
         assert(1 == len(args))
@@ -133,36 +142,22 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
         assert(1 == len(args))
         return args[0].value
 
-
-    def slop_ref(self, args):
-        assert(isinstance(args[0], M.SlopDef))
-        return M.SlotRef(slop = args[0])
-
     def slot_ref(self, args):
         assert(1 == len(args))
         assert(isinstance(args[0], str))
         return M.SlotRef(name = args[0])
 
 
-    #------- {a,de}scension (ASCENSION)
-
-    def up(self, args):
-        assert(1 == len(args))
-        assert(isinstance(args[0], M.SlotRef))
-        sd = M.SlotDef(slotType = "Slot", ref = args[0])
-        return M.SlotRef(slot = sd)
-
-    def down(self, args):
-        NYI
-
     #------- constants
 
     def constant(self, args):
         assert(1 == len(args))
-        assert(isinstance(args[0], M.SlotDef))
-        assert(isinstance(args[0].constant, list)) # this is so we can use `if sd.constant` more clearly
-        args[0].name = "[{} Constant]".format(args[0].slotType)
-        return M.SlotRef(slot = args[0])
+        if isinstance(args[0], M.SlopDef):
+            return M.SlotDef(slop = args[0])
+        sd = args[0]
+        assert(isinstance(sd, M.SlotDef))
+        assert(sd.constant and isinstance(sd.constant, list)) # this is so we can use `if sd.constant` more clearly
+        return sd
 
     def _token_dispatch(self, tokenClass, token):
         return getattr(self, "_{}_{}".format(tokenClass, token.type))(token.value)
@@ -200,14 +195,41 @@ class ExtendedDefinitionMaker(KernelDefinitionMaker):
 
     syntactic_shortcut = _simple
 
+    #------- {a,de}scension
+
+    def up(self, args):
+        assert(1 == len(args))
+        ref = args[0]
+        assert(isinstance(ref, M.SlotRef))
+        sd = M.SlotDef(slotType = "Slot")
+        slex = M.SlexDef(op = M.SlotRef(name = "Generic_up"),
+                         args = [ ref, M.SlotRef(slot = sd, name = "[Ascension of {}]".format(ref.name)) ])
+        return [ sd, slex ]
+
+    def down(self, args):
+        assert(1 == len(args))
+        ref = args[0]
+        assert(isinstance(ref, M.SlotRef))
+        sd = M.SlotDef(slotType = "Generic")
+        slex = M.SlexDef(op = M.SlotRef(name = "Slot_down"),
+                         args = [ ref, M.SlotRef(slot = sd, name = "[Descension of {}]".format(ref.name)) ])
+        return [ sd, slex ]
+
+
+    #------- assignment / ctor
+
     def assignment(self, args):
         assert(2 == len(args))
         assert(isinstance(args[0], M.SlotRef))
         assert(isinstance(args[1], M.SlotRef))
-        return M.SlexDef(op = M.SlotRef(name = "Slot_copy"), args = args)
+        destAscension = self.up([ args[0] ])
+        sourceAscension = self.up([ args[1] ])
+        slex = M.SlexDef(op = M.SlotRef(name = "Slot_copy"),
+                         args = [ destAscension[0], sourceAscension[0] ])
+        return destAscension + sourceAscension + [ slex ]
 
     def constructor(self, args):
         assert(2 == len(args))
         assert(isinstance(args[0], M.SlotDef))
         assert(isinstance(args[1], M.SlotRef))
-        return [ args[0], self.assignment([ M.SlotRef(name = args[0].name), args[1] ]) ]
+        return [ args[0] ] + self.assignment([ M.SlotRef(slot = args[0]), args[1] ])

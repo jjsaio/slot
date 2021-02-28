@@ -1,6 +1,7 @@
 
 from . import model as M
 from .context import Context
+from .display import displayDesignation
 from .util import prettyJson
 
 
@@ -12,21 +13,36 @@ def _Integer_plus(slex, executor):
         assert(3 == len(slex.args))
         for i in range(len(slop.params)):
             assert(slop.params[i].slotType == slex.args[i].slotType)
-    slex.args[0].data = slex.args[1].data + slex.args[2].data
+    dst, a, b = slex.args
+    dst.data = a.data + b.data
 
 def _Slot_copy(slex, executor):
-    slex.args[0].data = slex.args[1].data
+    dst, src = slex.args
+    assert(isinstance(dst.data, M.Slot) and isinstance(src.data, M.Slot)) # should have been done by _execute, can nuke once good
+    # TODO: runtime type compat? better of course if it's compile-time...
+    dst.data.data = src.data.data
+
+def _Generic_up(slex, executor):
+    source, slot = slex.args
+    slot.data = source
+
+def _Slot_down(slex, executor):
+    slot, dest = slex.args
+    if not isinstance(slot.data, M.Slot):
+        raise Exception("Attempt to `down` non-structure `{}`".format(displayDesignation(slot)))
+    # TODO: runtime type compat?
+    dest.data = slot.data.data
 
 def _Slop_execute(slex, executor):
-    slop = slex.args[0].data
-    assert(isinstance(slop, M.Slop))
-    executor.execute(M.Slex(op = slop))
+    slop = slex.args[0]
+    assert(isinstance(slop.data, M.Slop))
+    executor.execute(M.Slex(op = slop.data))
 
 def _Slop_execute_if(slex, executor):
-    if slex.args[1].data:
-        slop = slex.args[0].data
-        assert(isinstance(slop, M.Slop))
-        executor.execute(M.Slex(op = slop))
+    slop, cond = slex.args
+    if cond.data:
+        assert(isinstance(slop.data, M.Slop))
+        executor.execute(M.Slex(op = slop.data))
 
 
 def builtinContext():
@@ -46,7 +62,7 @@ def builtinContext():
     integer = addType('Integer')
     addType('Real')
     addType('String')
-    addType('Slot')
+    slot = addType('Slot')
     addType('MetaSlot')
     addType('Slex')
     addType('MetaSlex')
@@ -63,8 +79,9 @@ def builtinContext():
         return s
 
     addBuiltin('plus', _Integer_plus, [ ("sum", integer), ("x", integer), ("y", integer) ])
-
-    addBuiltin('Slot_copy', _Slot_copy, [ ("dest", generic), ("source", generic) ])
+    addBuiltin('Slot_copy', _Slot_copy, [ ("dest", slot), ("source", slot) ])
+    addBuiltin('Generic_up', _Generic_up, [ ("source", generic), ("slot", slot) ])
+    addBuiltin('Slot_down', _Slot_down, [ ("slot", slot), ("dest", generic) ])
     addBuiltin('Slop_execute', _Slop_execute, [ ( "slop", slop ) ])
     addBuiltin('Slop_execute_if', _Slop_execute_if, [ ( "slop", slop ), ("cond", boolean ) ])
 

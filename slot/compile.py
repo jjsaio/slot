@@ -30,42 +30,35 @@ class Compiler(LoggingClass):
 
     def compileSlotDef(self, sd, context):
         assert(isinstance(sd, M.SlotDef))
+        assert(not sd.compiled)
         slot = M.MetaSlot(slotType = self._slotType(sd.slotType, context))
-        if sd.ref:
-            # ASCENSION
-            assert(slot.slotType.human.name == 'Slot')
-            slot.ascension = self.compileSlotRef(sd.ref, context)
-            return context.addSlot(slot)
-        elif sd.constant:
+        if sd.constant:
             assert(slot.slotType)
             slot.concrete = M.Slot(slotType = slot.slotType)
             slot.concrete.data = sd.constant[0] # can't use ctor since gencode uses `or None`
-            slot.human = M.Human(name = sd.name or "[{} Constant]".format(sd.slotType))
-            return context.addSlot(slot)
-        else:
-            assert(sd.name)
+        if sd.name:
             slot.human = M.Human(name = sd.name)
-            return context.addNamedSlot(sd.name, slot)
+            mslot = context.addNamedSlot(sd.name, slot)
+        else:
+            mslot = context.addSlot(sd.name, slot)
+        assert(isinstance(mslot, M.MetaSlot))
+        sd.compiled = mslot
+        return mslot
 
     def compileSlotRef(self, ref, context):
         assert(isinstance(ref, M.SlotRef))
-        if ref.slop:
-            assert(isinstance(ref.slop, M.SlopDef))
-            slop = self.compileSlopDef(ref.slop, context)
-            assert(isinstance(slop, M.Slop))
-            c = M.Slot(slotType = self._slotType('Slop', context), data = slop)
-            slot = M.MetaSlot(slotType = c.slotType, concrete = c)
-        elif ref.slot:
+        if ref.slot:
             assert(isinstance(ref.slot, M.SlotDef))
-            slot = self.compileSlotDef(ref.slot, context)
+            slot = ref.slot.compiled
         else:
             if not context.hasSlotNamed(ref.name):
                 raise Exception("Unbound slot reference: `{}`".format(ref.name))
             slot = context.slotNamed(ref.name)
-        assert(isinstance(slot, M.MetaSlot))
+        assert(slot and isinstance(slot, M.MetaSlot))
         if slot.concrete:
             assert(isinstance(slot.concrete, M.Slot))
         if slot.instanced:
+            # i think we should only ever be able to get here during interactive mode
             assert(isinstance(slot.instanced, M.Slot))
         return slot
 
