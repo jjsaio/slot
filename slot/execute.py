@@ -20,13 +20,13 @@ class Executor(LoggingClass):
         assert(isinstance(slex, M.Slex))
 
         # get the op
-        slop = slex.op.data
+        slop = slex.op
         if (not slop) or (not isinstance(slop, M.Slop)):
             raise Exception("Cannot execute Slex with non-Slop op: {}".format(slop))
 
         # native handling can just pass the args directly
         if slop.native:
-            slop.native(slex)
+            slop.native(slex, self)
             return
 
         # instantiate the parameters (using the args)

@@ -48,7 +48,7 @@ down: "↓" slot_ref
 
 constant: literal
 
-literal: STRING | INTEGER | REAL | BOOLEAN | NONE
+literal: STRING | INTEGER | REAL | BOOLEAN | NIL
 
 DIGIT: "0".."9"
 LETTER: "a".."z" | "A".."Z"
@@ -60,8 +60,8 @@ INTEGER: ("+"|"-")? DIGIT+
 DECIMAL: ("+"|"-")? ((DIGIT+ "." DIGIT*) | (DIGIT* "." DIGIT+))
 REAL: DECIMAL
 NUMBER: REAL | INTEGER
-BOOLEAN: "True" | "False"
-NONE: "None"
+BOOLEAN: "$t" | "$f"
+NIL: "$nil"
 
 STRING_INNER: ("\\\""|/[^"]/)
 ESCAPED_STRING: "\"" STRING_INNER* "\""

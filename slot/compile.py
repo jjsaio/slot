@@ -31,17 +31,19 @@ class Compiler(LoggingClass):
     def compileSlotDef(self, sd, context):
         assert(isinstance(sd, M.SlotDef))
         slot = M.MetaSlot(slotType = self._slotType(sd.slotType, context))
-        if sd.constant is not None:
-            slot.concrete = M.Slot(slotType = slot.slotType)
-            slot.concrete.data = sd.constant # can't use ctor since gencode uses `or None`
-            slot.human = M.Human(name = sd.name or "[Constant]")
-            return context.addSlot(slot)
-        elif sd.ref:
+        if sd.ref:
             # ASCENSION
             assert(slot.slotType.human.name == 'Slot')
             slot.ascension = self.compileSlotRef(sd.ref, context)
             return context.addSlot(slot)
+        elif sd.constant:
+            assert(slot.slotType)
+            slot.concrete = M.Slot(slotType = slot.slotType)
+            slot.concrete.data = sd.constant[0] # can't use ctor since gencode uses `or None`
+            slot.human = M.Human(name = sd.name or "[{} Constant]".format(sd.slotType))
+            return context.addSlot(slot)
         else:
+            assert(sd.name)
             slot.human = M.Human(name = sd.name)
             return context.addNamedSlot(sd.name, slot)
 

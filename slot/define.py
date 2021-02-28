@@ -160,6 +160,7 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
     def constant(self, args):
         assert(1 == len(args))
         assert(isinstance(args[0], M.SlotDef))
+        assert(isinstance(args[0].constant, list)) # this is so we can use `if sd.constant` more clearly
         args[0].name = "[{} Constant]".format(args[0].slotType)
         return M.SlotRef(slot = args[0])
 
@@ -171,12 +172,19 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
         return self._token_dispatch("literal", args[0])
 
     def _literal_INTEGER(self, val):
-        sd = M.SlotDef(slotType = "Integer")
-        sd.constant = int(val) # can't use initializer b/c gencode with Object type uses "or None"
-        return sd
+        return M.SlotDef(slotType = "Integer", constant = [ int(val) ])
 
     def _literal_STRING(self, val):
-        return M.SlotDef(slotType = "String", constant = str(val))
+        return M.SlotDef(slotType = "String", constant = [ str(val) ])
+
+    def _literal_BOOLEAN(self, val):
+        return M.SlotDef(slotType = "Boolean", constant = [ { "$t" : True, "$f" : False}[val] ])
+
+    def _literal_REAL(self, val):
+        return M.SlotDef(slotType = "Real", constant = [ float(val) ])
+
+    def _literal_NIL(self, val):
+        return M.SlotDef(slotType = "Nil", constant = [ None ])
 
 
 

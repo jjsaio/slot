@@ -53,5 +53,7 @@ class Instantiator(LoggingClass):
 
     def instantiateMetaSlex(self, mslex):
         assert(isinstance(mslex, M.MetaSlex))
-        return M.Slex(op = self.instantiatedSlot(mslex.op),
+        opSlot = self.instantiatedSlot(mslex.op)
+        assert(isinstance(opSlot, M.Slot) and isinstance(opSlot.data, M.Slop))
+        return M.Slex(op = opSlot.data,
                       args = [ self.instantiatedSlot(a) for a in mslex.args ])

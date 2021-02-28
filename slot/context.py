@@ -42,6 +42,7 @@ class Context(LoggingClass):
         return self._namedSlots.get(n, self._parent.slotNamed(n) if self._parent else None)
 
     def addNamedSlot(self, name, slot):
+        assert(not name.startswith('['))
         if name in self._namedSlots:
             raise Exception("Slot already exists in context: `{}`".format(name))
         assert(isinstance(slot, M.MetaSlot))

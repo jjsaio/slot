@@ -59,7 +59,7 @@ class Slot(object):
 class Slex(object):
 
     def __init__(self, op = None, args = None):
-        self.op = op or None  # type Slot
+        self.op = op or None  # type Slop
         self.args = args or []  # type [Slot]
 
     @property
@@ -93,7 +93,7 @@ class Slex(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.op = Slot().loadFromJson(json.get('op'))
+        self.op = Slop().loadFromJson(json.get('op'))
         self.args = [ Slot().loadFromJson(x) for x in json.get('args') or [] ]
         return self
 
@@ -432,7 +432,7 @@ class SlotDef(object):
     def __init__(self, name = None, slotType = None, constant = None, ref = None):
         self.name = name or ''  # type String
         self.slotType = slotType or ''  # type String
-        self.constant = constant or None  # type Object
+        self.constant = constant or []  # type [Object]
         self.ref = ref or None  # type SlotRef
 
     @property
@@ -447,7 +447,7 @@ class SlotDef(object):
         return {
             'name' : self.name or '',
             'slotType' : self.slotType or '',
-            'constant' : self.constant or None,
+            'constant' : self.constant or [],
             'ref' : self.ref or None,
         }
 
@@ -470,7 +470,7 @@ class SlotDef(object):
             return self
         self.name = json.get('name')
         self.slotType = json.get('slotType')
-        self.constant = Object().loadFromJson(json.get('constant'))
+        self.constant = [ Object().loadFromJson(x) for x in json.get('constant') or [] ]
         self.ref = SlotRef().loadFromJson(json.get('ref'))
         return self
 
@@ -480,7 +480,7 @@ class SlotDef(object):
             d["type"] = self.typeName
         if self.name != None: d['name'] = self.name
         if self.slotType != None: d['slotType'] = self.slotType
-        if self.constant != None: d['constant'] = self.constant.json(skipTypes = skipTypes) if hasattr(self.constant, 'json') else id(self.constant)
+        if self.constant != None: d['constant'] = [ x.json(skipTypes = skipTypes) for x in self.constant ]
         if self.ref != None: d['ref'] = self.ref.json(skipTypes = skipTypes) if hasattr(self.ref, 'json') else id(self.ref)
         return d
 

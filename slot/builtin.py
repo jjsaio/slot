@@ -4,7 +4,7 @@ from .context import Context
 from .util import prettyJson
 
 
-def _Integer_plus(slex):
+def _Integer_plus(slex, executor):
     slop = slex.op
     # these asserts should be done by _execute, just doing here for illustration
     if False:
@@ -14,8 +14,19 @@ def _Integer_plus(slex):
             assert(slop.params[i].slotType == slex.args[i].slotType)
     slex.args[0].data = slex.args[1].data + slex.args[2].data
 
-def _Slot_copy(slex):
+def _Slot_copy(slex, executor):
     slex.args[0].data = slex.args[1].data
+
+def _Slop_execute(slex, executor):
+    slop = slex.args[0].data
+    assert(isinstance(slop, M.Slop))
+    executor.execute(M.Slex(op = slop))
+
+def _Slop_execute_if(slex, executor):
+    if slex.args[1].data:
+        slop = slex.args[0].data
+        assert(isinstance(slop, M.Slop))
+        executor.execute(M.Slex(op = slop))
 
 
 def builtinContext():
@@ -30,8 +41,9 @@ def builtinContext():
         return st
 
     generic = addType('Generic', displayType = '*')
+    addType('Nil')
+    boolean = addType('Boolean')
     integer = addType('Integer')
-    addType('Boolean')
     addType('Real')
     addType('String')
     addType('Slot')
@@ -51,5 +63,9 @@ def builtinContext():
         return s
 
     addBuiltin('plus', _Integer_plus, [ ("sum", integer), ("x", integer), ("y", integer) ])
+
     addBuiltin('Slot_copy', _Slot_copy, [ ("dest", generic), ("source", generic) ])
+    addBuiltin('Slop_execute', _Slop_execute, [ ( "slop", slop ) ])
+    addBuiltin('Slop_execute_if', _Slop_execute_if, [ ( "slop", slop ), ("cond", boolean ) ])
+
     return ctx

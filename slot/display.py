@@ -31,7 +31,8 @@ def displayStructure(x):
     return "<< {} : {} >>".format(t, d)
 
 _designationTypeLookup = {
-    "NoneType" : "Null",
+    "NoneType" : "Nil",
+    "Nil" : "Nil",
     "Boolean" : "Truth Value",
     "bool" : "Truth Value",
     "Integer" : "Number",
@@ -53,6 +54,8 @@ def displayDesignation(x):
             t = type(x.data).__name__
         if hasattr(x.data, 'fsType'): # is it a model object?
             d = "..."
+        elif (x.data == None):
+            d = 'Nil'
         else:
             d = str(x.data)
     if (not t) or (t not in _designationTypeLookup):
