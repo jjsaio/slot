@@ -3,6 +3,55 @@ import sys
 from .fs import fs
 
 
+class ExecutionContext(object):
+
+    def __init__(self, interpreter = None, node = None):
+        self.interpreter = interpreter or None  # type Interpreter
+        self.node = node or None  # type ExecutionNode
+
+    @property
+    def typeName(self):
+        return "ExecutionContext"
+
+    @property
+    def fsType(self):
+        return fs.ExecutionContext
+
+    def defaultDict(self):
+        return {
+            'interpreter' : self.interpreter or None,
+            'node' : self.node or None,
+        }
+
+    def _description(self):
+        return "ExecutionContext: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+
+    def _newObjectOfSameType(self):
+        return ExecutionContext()
+
+    def clone(self):
+        c = self._newObjectOfSameType()
+        if hasattr(self, 'serialize'):
+            c.deserialize(self.serialize())
+        else:
+            c.loadFromJson(self.json())
+        return c
+
+    def loadFromJson(self, json):
+        if not json:
+            return self
+        self.interpreter = Interpreter().loadFromJson(json.get('interpreter'))
+        self.node = ExecutionNode().loadFromJson(json.get('node'))
+        return self
+
+    def json(self, skipTypes = False):
+        d = { }
+        if not skipTypes:
+            d["type"] = self.typeName
+        if self.interpreter != None: d['interpreter'] = self.interpreter.json(skipTypes = skipTypes) if hasattr(self.interpreter, 'json') else id(self.interpreter)
+        if self.node != None: d['node'] = self.node.json(skipTypes = skipTypes) if hasattr(self.node, 'json') else id(self.node)
+        return d
+
 class ExecutionNode(object):
 
     def __init__(self, slex = None, executed = None, next = None, parent = None):
@@ -644,6 +693,7 @@ def newObjectOfType(type):
     return globals()[type]()
 
 _g_fsMap = {
+    fs.ExecutionContext : ExecutionContext,
     fs.ExecutionNode : ExecutionNode,
     fs.SlotType : SlotType,
     fs.Slot : Slot,

@@ -29,7 +29,7 @@ n |b|
 n b = a
 n b
 n |zzz|
-n |q| > ![z,w]{ ExecutionNode_current(zzz); ExecutionNode_printStack(zzz); ExecutionNode_printUpcoming(zzz); plus(w,x,c4); Generic_up(z, u); Generic_up(w, v); Slot_copy(u, v); plus(z, z, c81) }
+n |q| > ![z,w]{ ExecutionNode_current(zzz); ExecutionNode_printStack(zzz); ExecutionNode_printNextInstructions(zzz); plus(w,x,c4); Generic_up(z, u); Generic_up(w, v); Slot_copy(u, v); plus(z, z, c81) }
 n q(x,y)
 n |r| > ![g]{ q(g, g); plus(x, y, g); b = x }
 n r(y)

@@ -1,0 +1,10 @@
+p |x|
+p x
+p plus(x,1,2)
+p ![x]{|a|;plus(x,1,2)}
+c |x|
+c x
+c plus(x,1,2)
+i |x|
+i plus(x,1,2)
+i |foo| := ![x]{|a|;plus(x,1,2)}

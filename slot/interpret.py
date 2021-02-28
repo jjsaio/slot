@@ -20,12 +20,18 @@ class Interpreter(LoggingClass):
         self._definer = Definer()
         self._linker = Linker()
         self._instantiator = Instantiator()
-        self._executor = Executor(self._instantiator)
+        self._executor = Executor(self)
         self._context = builtinContext().derive()
         self.raiseOnError = False
 
+
     def reset(self):
         self._context = builtinContext().derive()
+
+
+    @property
+    def parser(self):
+        return self._parser
 
     @property
     def allowShortcuts(self):
@@ -48,6 +54,11 @@ class Interpreter(LoggingClass):
             if self.raiseOnError:
                 raise e
             return None
+
+
+    @property
+    def definer(self):
+        return self._definer
         
     def define(self, tree):
         if not tree:
@@ -60,6 +71,11 @@ class Interpreter(LoggingClass):
             if self.raiseOnError:
                 raise e
             return None
+
+
+    @property
+    def linker(self):
+        return self._linker
 
     def link(self, parsed):
         if not parsed:
@@ -83,6 +99,11 @@ class Interpreter(LoggingClass):
                 raise e
             return None
 
+
+    @property
+    def instantiator(self):
+        return self._instantiator
+
     def instantiate(self, linked):
         if not linked:
             return None
@@ -104,6 +125,11 @@ class Interpreter(LoggingClass):
             if self.raiseOnError:
                 raise e
             return None
+
+
+    @property
+    def executor(self):
+        return self._executor
 
     def execute(self, inst):
         if not inst:
@@ -131,6 +157,7 @@ class Interpreter(LoggingClass):
             if self.raiseOnError:
                 raise e
             return False
+
 
     def handleDefinition(self, defined):
         if defined.fsType == fs.SlexDef:
