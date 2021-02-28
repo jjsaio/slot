@@ -225,7 +225,7 @@ class ExtendedDefinitionMaker(KernelDefinitionMaker):
         destAscension = self.up([ args[0] ])
         sourceAscension = self.up([ args[1] ])
         slex = M.SlexDef(op = M.SlotRef(name = "Slot_copy"),
-                         args = [ destAscension[0], sourceAscension[0] ])
+                         args = [ M.SlotRef(slot = destAscension[0]), M.SlotRef(slot = sourceAscension[0]) ])
         return destAscension + sourceAscension + [ slex ]
 
     def constructor(self, args):

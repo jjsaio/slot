@@ -43,7 +43,7 @@ class Compiler(LoggingClass):
             slot.human = M.Human(name = sd.name)
             mslot = context.addNamedSlot(sd.name, slot)
         else:
-            mslot = context.addSlot(sd.name, slot)
+            mslot = context.addSlot(slot)
         assert(isinstance(mslot, M.MetaSlot))
         sd.compiled = mslot
         return mslot
