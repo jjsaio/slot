@@ -5,10 +5,9 @@ from .fs import fs
 
 class Slot(object):
 
-    def __init__(self, slotType = None, data = None, subslots = None, human = None):
-        self.slotType = slotType or None  # type Slot
+    def __init__(self, slotType = None, data = None, human = None):
+        self.slotType = slotType or None  # type SlotType
         self.data = data or None  # type Pointer
-        self.subslots = subslots or []  # type [Slot]
         self.human = human or None  # type Human
 
     @property
@@ -23,7 +22,6 @@ class Slot(object):
         return {
             'slotType' : self.slotType or None,
             'data' : self.data or None,
-            'subslots' : self.subslots or [],
             'human' : self.human or None,
         }
 
@@ -44,9 +42,8 @@ class Slot(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.slotType = Slot().loadFromJson(json.get('slotType'))
+        self.slotType = SlotType().loadFromJson(json.get('slotType'))
         self.data = json.get('data')
-        self.subslots = [ Slot().loadFromJson(x) for x in json.get('subslots') or [] ]
         self.human = Human().loadFromJson(json.get('human'))
         return self
 
@@ -56,7 +53,6 @@ class Slot(object):
             d["type"] = self.typeName
         if self.slotType != None: d['slotType'] = self.slotType.json(skipTypes = skipTypes) if hasattr(self.slotType, 'json') else id(self.slotType)
         if self.data != None: d['data'] = id(self.data)
-        if self.subslots != None: d['subslots'] = [ x.json(skipTypes = skipTypes) for x in self.subslots ]
         if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
         return d
 
@@ -107,6 +103,51 @@ class Slex(object):
             d["type"] = self.typeName
         if self.op != None: d['op'] = self.op.json(skipTypes = skipTypes) if hasattr(self.op, 'json') else id(self.op)
         if self.args != None: d['args'] = [ x.json(skipTypes = skipTypes) for x in self.args ]
+        return d
+
+class SlotType(object):
+
+    def __init__(self, human = None):
+        self.human = human or None  # type Human
+
+    @property
+    def typeName(self):
+        return "SlotType"
+
+    @property
+    def fsType(self):
+        return fs.SlotType
+
+    def defaultDict(self):
+        return {
+            'human' : self.human or None,
+        }
+
+    def _description(self):
+        return "SlotType: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+
+    def _newObjectOfSameType(self):
+        return SlotType()
+
+    def clone(self):
+        c = self._newObjectOfSameType()
+        if hasattr(self, 'serialize'):
+            c.deserialize(self.serialize())
+        else:
+            c.loadFromJson(self.json())
+        return c
+
+    def loadFromJson(self, json):
+        if not json:
+            return self
+        self.human = Human().loadFromJson(json.get('human'))
+        return self
+
+    def json(self, skipTypes = False):
+        d = { }
+        if not skipTypes:
+            d["type"] = self.typeName
+        if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
         return d
 
 class Slop(object):
@@ -172,10 +213,11 @@ class Slop(object):
 
 class MetaSlot(object):
 
-    def __init__(self, slotType = None, concrete = None, instanced = None, human = None):
+    def __init__(self, slotType = None, concrete = None, instanced = None, ascension = None, human = None):
         self.slotType = slotType or None  # type Slot
         self.concrete = concrete or None  # type Slot
         self.instanced = instanced or None  # type Slot
+        self.ascension = ascension or None  # type MetaSlot
         self.human = human or None  # type Human
 
     @property
@@ -191,6 +233,7 @@ class MetaSlot(object):
             'slotType' : self.slotType or None,
             'concrete' : self.concrete or None,
             'instanced' : self.instanced or None,
+            'ascension' : self.ascension or None,
             'human' : self.human or None,
         }
 
@@ -214,6 +257,7 @@ class MetaSlot(object):
         self.slotType = Slot().loadFromJson(json.get('slotType'))
         self.concrete = Slot().loadFromJson(json.get('concrete'))
         self.instanced = Slot().loadFromJson(json.get('instanced'))
+        self.ascension = MetaSlot().loadFromJson(json.get('ascension'))
         self.human = Human().loadFromJson(json.get('human'))
         return self
 
@@ -224,6 +268,7 @@ class MetaSlot(object):
         if self.slotType != None: d['slotType'] = self.slotType.json(skipTypes = skipTypes) if hasattr(self.slotType, 'json') else id(self.slotType)
         if self.concrete != None: d['concrete'] = self.concrete.json(skipTypes = skipTypes) if hasattr(self.concrete, 'json') else id(self.concrete)
         if self.instanced != None: d['instanced'] = self.instanced.json(skipTypes = skipTypes) if hasattr(self.instanced, 'json') else id(self.instanced)
+        if self.ascension != None: d['ascension'] = self.ascension.json(skipTypes = skipTypes) if hasattr(self.ascension, 'json') else id(self.ascension)
         if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
         return d
 
@@ -384,10 +429,11 @@ class SlotRef(object):
 
 class SlotDef(object):
 
-    def __init__(self, name = None, slotType = None, constant = None):
+    def __init__(self, name = None, slotType = None, constant = None, ref = None):
         self.name = name or ''  # type String
         self.slotType = slotType or ''  # type String
         self.constant = constant or None  # type Object
+        self.ref = ref or None  # type SlotRef
 
     @property
     def typeName(self):
@@ -402,6 +448,7 @@ class SlotDef(object):
             'name' : self.name or '',
             'slotType' : self.slotType or '',
             'constant' : self.constant or None,
+            'ref' : self.ref or None,
         }
 
     def _description(self):
@@ -424,6 +471,7 @@ class SlotDef(object):
         self.name = json.get('name')
         self.slotType = json.get('slotType')
         self.constant = Object().loadFromJson(json.get('constant'))
+        self.ref = SlotRef().loadFromJson(json.get('ref'))
         return self
 
     def json(self, skipTypes = False):
@@ -433,6 +481,7 @@ class SlotDef(object):
         if self.name != None: d['name'] = self.name
         if self.slotType != None: d['slotType'] = self.slotType
         if self.constant != None: d['constant'] = self.constant.json(skipTypes = skipTypes) if hasattr(self.constant, 'json') else id(self.constant)
+        if self.ref != None: d['ref'] = self.ref.json(skipTypes = skipTypes) if hasattr(self.ref, 'json') else id(self.ref)
         return d
 
 class SlexDef(object):
@@ -540,6 +589,7 @@ def newObjectOfType(type):
 _g_fsMap = {
     fs.Slot : Slot,
     fs.Slex : Slex,
+    fs.SlotType : SlotType,
     fs.Slop : Slop,
     fs.MetaSlot : MetaSlot,
     fs.MetaSlex : MetaSlex,

@@ -12,7 +12,7 @@ n ![]{ plus(x,2,3) }
 n ![z]{ plus(z,x,4) }
 n ![z,w]{ plus(w,x,4); Slot_copy(z, w) }
 n |p|
-n Slot_copy(p, ![z,w]{ plus(w,x,4); Slot_copy(z, w) })
+n Slot_copy(p, ![z,w]{ plus(w,x,4); Slot_copy(z, w); plus(z,z,81) })
 n x
 n y
 n p(x,y)

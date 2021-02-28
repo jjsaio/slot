@@ -143,11 +143,20 @@ class Interpreter(LoggingClass):
 
     def handle(self, inputString):
         assert(isinstance(inputString, str))
-        last = None
-        for defined in (self.define(self.parse(inputString)) or []):
-            res = self.handleDefinition(defined)
-            if not res:
-                break
-            if (not last) or (res != True):
-                last = res
-        return last
+        _raiseOnError = self.raiseOnError
+        self.raiseOnError = True
+        try:
+            last = None
+            for defined in (self.define(self.parse(inputString)) or []):
+                res = self.handleDefinition(defined)
+                if not res:
+                    break
+                if (not last) or (res != True):
+                    last = res
+            return last
+        except Exception as e:
+            if _raiseOnError:
+                raise e
+            return None
+        finally:
+            self.raiseOnError = _raiseOnError

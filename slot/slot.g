@@ -8,7 +8,7 @@
 interpreter: slop_body
 
 // interactive mode
-interactive: slop_step | slop | slot_ref | constant
+interactive: slop_step | slop | slot_ref | constant | up
 
 //---------------------
 // kernel defs
@@ -27,7 +27,7 @@ slex_args: "(" (slot ",")* slot? ")"
 
 slot_spec: slot_name (":" slot_name)?
 slot_def: "|" slot_spec "|"
-slot: slot_ref | slop_ref | constant
+slot: slot_ref | slop_ref | constant | up
 slot_name: NAME
 
 slop_ref: slop
@@ -35,11 +35,11 @@ slot_ref: slot_name
 
 
 //----------------------
-// TAI
+// {a,de}scension
 //----------------------
 
-//up: ("↑" | "UP") expr
-//down: ("↓" | "DOWN") expr
+up: "↑" slot
+down: "↓" slot_ref
 
 
 //----------------------

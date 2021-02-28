@@ -3,7 +3,7 @@ from . import model as M
 
 
 def _displayType(x):
-    return (x.human.displayType or "??") if (x and x.human) else "??"
+    return (x.human.displayType or x.human.name or "??") if (x and x.human) else "??"
 
 def displayStructure(x):
     t = type(x).__name__

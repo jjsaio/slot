@@ -1124,11 +1124,15 @@ Slex = 1143
 Human = 1144
 Command = 1145
 SlotRef = 1146
-MetaSlot = 1147
-MetaSlex = 1148
-SlopDef = 1149
-SlotDef = 1150
-SlexDef = 1151
+Deactivate = 1147
+droppedPackets = 1148
+oooPackets = 1149
+MetaSlot = 1150
+MetaSlex = 1151
+SlopDef = 1152
+SlotDef = 1153
+SlexDef = 1154
+SlotType = 1155
 
 g_fsMap = {
     APIChannel : "APIChannel",
@@ -1224,6 +1228,7 @@ g_fsMap = {
     CreateRelationship : "CreateRelationship",
     Data : "Data",
     DataWrapper : "DataWrapper",
+    Deactivate : "Deactivate",
     Default : "Default",
     DefaultKeyScheme : "DefaultKeyScheme",
     Deleted : "Deleted",
@@ -1573,6 +1578,7 @@ g_fsMap = {
     Slot : "Slot",
     SlotDef : "SlotDef",
     SlotRef : "SlotRef",
+    SlotType : "SlotType",
     SocketClose : "SocketClose",
     SocketError : "SocketError",
     SocketPlumbing : "SocketPlumbing",
@@ -1787,6 +1793,7 @@ g_fsMap = {
     dontFix : "dontFix",
     downPair : "downPair",
     driverName : "driverName",
+    droppedPackets : "droppedPackets",
     duration : "duration",
     echoCancelFlags : "echoCancelFlags",
     echoCancelTailLength : "echoCancelTailLength",
@@ -2001,6 +2008,7 @@ g_fsMap = {
     objectType : "objectType",
     offset : "offset",
     onValue : "onValue",
+    oooPackets : "oooPackets",
     open : "open",
     optionDown : "optionDown",
     origGetFrameFn : "origGetFrameFn",

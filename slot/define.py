@@ -144,6 +144,17 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
         return M.SlotRef(name = args[0])
 
 
+    #------- {a,de}scension (ASCENSION)
+
+    def up(self, args):
+        assert(1 == len(args))
+        assert(isinstance(args[0], M.SlotRef))
+        sd = M.SlotDef(slotType = "Slot", ref = args[0])
+        return M.SlotRef(slot = sd)
+
+    def down(self, args):
+        NYI
+
     #------- constants
 
     def constant(self, args):

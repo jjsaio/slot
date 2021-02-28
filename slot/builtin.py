@@ -20,22 +20,25 @@ def _Slot_copy(slex):
 
 def builtinContext():
     ctx = Context()
-    def addType(name, displayType = None, typeType = None):
-        s = M.Slot(slotType = typeType, human = M.Human(name = name, displayType = displayType or name))
+
+    typeType = M.SlotType(human = M.Human(name = 'Type'))
+
+    def addType(name, displayType = None):
+        st = M.SlotType(human = M.Human(name = name, displayType = displayType))
+        s = M.Slot(slotType = typeType, data = st, human = st.human)
         ctx.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s, human = s.human))
-        return s
+        return st
 
     generic = addType('Generic', displayType = '*')
-    nat = addType('_Native', displayType = 'scalar')
-    integer = addType('Integer', typeType = nat)
-    integer = addType('Boolean', typeType = nat)
-    integer = addType('Real', typeType = nat)
-    integer = addType('String', typeType = nat)
-    addType('Slot', typeType = nat)
-    addType('MetaSlot', typeType = nat)
-    addType('Slex', typeType = nat)
-    addType('MetaSlex', typeType = nat)
-    slop = addType('Slop', typeType = nat)
+    integer = addType('Integer')
+    addType('Boolean')
+    addType('Real')
+    addType('String')
+    addType('Slot')
+    addType('MetaSlot')
+    addType('Slex')
+    addType('MetaSlex')
+    slop = addType('Slop')
 
     def addBuiltin(name, handler, params):
         h = M.Human(name = name)

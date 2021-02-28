@@ -25,7 +25,8 @@ class Compiler(LoggingClass):
         else:
             st = context.slotNamed(typeName).concrete
         assert(isinstance(st, M.Slot))
-        return st
+        assert(isinstance(st.data, M.SlotType))
+        return st.data
 
     def compileSlotDef(self, sd, context):
         assert(isinstance(sd, M.SlotDef))
@@ -34,6 +35,11 @@ class Compiler(LoggingClass):
             slot.concrete = M.Slot(slotType = slot.slotType)
             slot.concrete.data = sd.constant # can't use ctor since gencode uses `or None`
             slot.human = M.Human(name = sd.name or "[Constant]")
+            return context.addSlot(slot)
+        elif sd.ref:
+            # ASCENSION
+            assert(slot.slotType.human.name == 'Slot')
+            slot.ascension = self.compileSlotRef(sd.ref, context)
             return context.addSlot(slot)
         else:
             slot.human = M.Human(name = sd.name)
@@ -45,7 +51,7 @@ class Compiler(LoggingClass):
             assert(isinstance(ref.slop, M.SlopDef))
             slop = self.compileSlopDef(ref.slop, context)
             assert(isinstance(slop, M.Slop))
-            c = M.Slot(slotType = context.slotNamed('Slop'), data = slop)
+            c = M.Slot(slotType = self._slotType('Slop', context), data = slop)
             slot = M.MetaSlot(slotType = c.slotType, concrete = c)
         elif ref.slot:
             assert(isinstance(ref.slot, M.SlotDef))

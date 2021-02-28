@@ -23,7 +23,13 @@ class Instantiator(LoggingClass):
             raise Exception("Cannot instantiate concrete MetaSlot `{}`".format(mslot.human.name if mslot.human else mslot))
         if mslot.instanced:
             raise Exception("MetaSlot `{}` is already instantiated in the current context".format(mslot.human.name if mslot.human else mslot))
-        if slot:
+        if mslot.ascension:
+            # ASCENSION
+            assert(not slot)
+            asc = mslot.ascension
+            assert(asc.instanced or asc.concrete)
+            mslot.instanced = M.Slot(slotType = mslot.slotType, data = asc.instanced or asc.concrete)
+        elif slot:
             assert(isinstance(slot, M.Slot))
             mslot.instanced = slot
         else:
@@ -43,7 +49,7 @@ class Instantiator(LoggingClass):
         elif mslot.instanced:
             return mslot.instanced
         else:
-            raise Exception("Slot not instantiated: {}".format(mslot.human.name if mslot.human else ms.json()))
+            raise Exception("Slot not instantiated: {}".format(mslot.human.name if mslot.human else mslot.json()))
 
     def instantiateMetaSlex(self, mslex):
         assert(isinstance(mslex, M.MetaSlex))
