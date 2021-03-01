@@ -17,8 +17,8 @@ interactive: slop_step | slot
 
 slop: "!" slop_params "{" slop_body "}"
 slop_params: "[" (slot_spec ",")* slot_spec? "]"
-slop_body: (slop_step ";")* slop_step?
-slop_step: slot_def | slex | syntactic_shortcut
+slop_body: (slop_step (";" | "\n"))* slop_step?
+slop_step: slot_def | slex | syntactic_shortcut | comment
 
 slex: slex_call
 slex_call: slex_op slex_args
@@ -45,6 +45,8 @@ literal: STRING | INTEGER | REAL | BOOLEAN | NIL
 // guts
 //----------------------
 
+comment: /#[^\n]*/
+
 DIGIT: "0".."9"
 LETTER: "a".."z" | "A".."Z"
 ALPHA_WORD: LETTER+
@@ -67,5 +69,5 @@ STRING: ESCAPED_STRING
 //ESCAPED_STRING_SQ: "'" STRING_INNER_SQ* "'"
 //STRING: ESCAPED_STRING | ESCAPED_STRING_SQ
 
-WHITESPACE: " "
+WHITESPACE: " " | "\n"
 %ignore WHITESPACE

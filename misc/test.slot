@@ -1,0 +1,29 @@
+
+# here we go!
+
+|sep| > "----------"
+
+|bar| > ![x, y] {
+      Generic_print(sep)
+      # just to see it in action
+      _printNextInstructions()
+      Integer_plus(x, x, y)
+      Integer_times(x, x, y)
+}
+
+|foo| > ![n] {
+      |c17| > 17
+      |c42| > 42
+      |tmp|
+      Integer_times(tmp, c17, c42)
+      bar(n, tmp)
+      Integer_minus(n, n, c17)
+}
+
+|g|>6
+foo(g)
+foo(g)
+bar(g, g)
+
+Generic_print(sep)
+Generic_print(g)

@@ -6,16 +6,28 @@ from .util import prettyJson
 
 
 def _Integer_plus(ctx):
-    slex = ctx.node.slex
-    slop = slex.op
     # these asserts should be done by _execute, just doing here for illustration
     if False:
+        slex = ctx.node.slex
+        slop = slex.op
         assert(_Integer_plus == slop.native)
         assert(3 == len(slex.args))
         for i in range(len(slop.params)):
             assert(slop.params[i].slotType == slex.args[i].slotType)
-    dst, a, b = slex.args
+    dst, a, b = ctx.node.slex.args
     dst.data = a.data + b.data
+
+def _Integer_minus(ctx):
+    dst, a, b = ctx.node.slex.args
+    dst.data = a.data - b.data
+
+def _Integer_times(ctx):
+    dst, a, b = ctx.node.slex.args
+    dst.data = a.data * b.data
+
+def _Boolean_greaterThan(ctx):
+    dst, a, b = ctx.node.slex.args
+    dst.data = (a.data > b.data)
 
 def _Slot_copy(ctx):
     slex = ctx.node.slex
@@ -49,12 +61,19 @@ def _Slop_execute(ctx):
     assert(isinstance(slop.data, M.Slop))
     ctx.interpreter.executor.executeSlex(M.Slex(op = slop.data))
 
-def _Slop_execute_if(ctx):
+def _Slop_executeIf(ctx):
     slex = ctx.node.slex
     slop, cond = slex.args
     if cond.data:
         assert(isinstance(slop.data, M.Slop))
-        ctx.interpreter.executor.executeSlex(M.Slex(op = slop.data))
+        ctx.interpreter.excute(M.Slex(op = slop.data))
+
+def _Slop_executeIfElse(ctx):
+    slex = ctx.node.slex
+    ifSlop, cond, elSlop = slex.args
+    execSlop = ifSlop if cond else elSlop
+    assert(isinstance(execSlop.data, M.Slop))
+    ctx.interpreter.execute(M.Slex(op = execSlop.data))
 
 def _ExecutionContext_current(ctx):
     slex = ctx.node.slex
@@ -138,13 +157,17 @@ def builtinNamespace():
         ns.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s, human = h))
         return s
 
-    addBuiltin('plus', _Integer_plus, [ ("sum", integer), ("x", integer), ("y", integer) ])
+    addBuiltin('Boolean_greaterThan', _Boolean_greaterThan, [ ("b", boolean), ("x", integer), ("y", integer) ])
+    addBuiltin('Integer_plus', _Integer_plus, [ ("sum", integer), ("x", integer), ("y", integer) ])
+    addBuiltin('Integer_minus', _Integer_minus, [ ("difference", integer), ("x", integer), ("y", integer) ])
+    addBuiltin('Integer_times', _Integer_times, [ ("product", integer), ("x", integer), ("y", integer) ])
     addBuiltin('Slot_copy', _Slot_copy, [ ("dest", slot), ("source", slot) ])
     addBuiltin('Generic_up', _Generic_up, [ ("source", generic), ("slot", slot) ])
     addBuiltin('Generic_print', _Generic_print, [ ("item", generic) ])
     addBuiltin('Slot_down', _Slot_down, [ ("slot", slot), ("dest", generic) ])
     addBuiltin('Slop_execute', _Slop_execute, [ ( "slop", slop ) ])
-    addBuiltin('Slop_execute_if', _Slop_execute_if, [ ( "slop", slop ), ("cond", boolean ) ])
+    addBuiltin('Slop_executeIf', _Slop_executeIf, [ ( "slop", slop ), ("cond", boolean ) ])
+    addBuiltin('Slop_executeIfElse', _Slop_executeIfElse, [ ( "ifslop", slop ), ("cond", boolean ), ( "elslop", slop ) ])
     addBuiltin('ExecutionContext_current', _ExecutionContext_current, [ ( "ctx", exctx ) ])
     addBuiltin('ExecutionNode_current', _ExecutionNode_current, [ ( "node", exnode ) ])
     addBuiltin('ExecutionNode_printStack', _ExecutionNode_printStack, [ ( "node", exnode ) ])

@@ -1,14 +1,14 @@
 
 from . import model as M
 from .builtin import builtinNamespace
-from .link import Linker
 from .define import Definer
 from .display import displayStructure
 from .execute import Executor
-from .fs import fs
 from .instantiate import Instantiator
+from .link import Linker
 from .logging import LoggingClass
 from .parse import Parser, ParseTree
+from .util import strWithFileAtPath
 
 
 class Interpreter(LoggingClass):
@@ -114,6 +114,9 @@ class Interpreter(LoggingClass):
         except Exception as e:
             raise Exception("Instantiation failed: {}".format(e))
 
+    def instantiatedSlot(self, mslot):
+        return self._instantiator.instantiatedSlot(mslot)
+
 
     @property
     def executor(self):
@@ -143,25 +146,7 @@ class Interpreter(LoggingClass):
             raise Exception("Execution failed: {}".format(e))
 
 
-    def handleDefinition(self, defined):
-        if defined.fsType == fs.SlexDef:
-            return self.execute(self.instantiate(self.link(defined)))
-        elif defined.fsType == fs.SlotDef:
-            return self.instantiate(self.link(defined))
-        elif defined.fsType == fs.SlotRef:
-            return self._instantiator.instantiatedSlot(self.link(defined))
-        elif defined.fsType == fs.SlopDef:
-            return self.link(defined)
-        else:
-            raise Exception("Unhandled definition type `{}`".format(defined))
-
-    def handle(self, inputString):
-        assert(isinstance(inputString, str))
-        last = None
-        for defined in (self.define(self.parse(inputString)) or []):
-            res = self.handleDefinition(defined)
-            if not res:
-                break
-            if (not last) or (res != True):
-                last = res
-        return last
+    def run(self, path):
+        script = strWithFileAtPath(path)
+        slop = self.link(self.define(self.parse(script)))
+        self.execute(M.Slex(op = slop))

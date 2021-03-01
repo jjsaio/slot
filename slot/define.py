@@ -81,12 +81,15 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
         return args
 
     def slop_body(self, args):
-        return args
+        return [ x for x in args if x ] # drops comments
 
     def slop_step(self, args):
         assert(1 == len(args))
-        assert(isinstance(args[0], M.SlotDef) or isinstance(args[0], M.SlexDef) or isinstance(args[0], list))
+        assert(isinstance(args[0], M.SlotDef) or isinstance(args[0], M.SlexDef) or isinstance(args[0], list) or (not args[0]))
         return args[0]
+
+    def comment(self, args):
+        return None
 
 
     def slex(self, args):
@@ -169,7 +172,8 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
         return M.SlotDef(slotType = "Integer", constant = [ int(val) ])
 
     def _literal_STRING(self, val):
-        return M.SlotDef(slotType = "String", constant = [ str(val) ])
+        assert((val[0] in [ '"', "'" ]) and (val[-1] in [ '"', "'" ]))
+        return M.SlotDef(slotType = "String", constant = [ val[1:-1] ])
 
     def _literal_BOOLEAN(self, val):
         return M.SlotDef(slotType = "Boolean", constant = [ { "$t" : True, "$f" : False}[val] ])

@@ -3,6 +3,7 @@ import os
 
 from . import model as M
 from .display import displayDesignation, displayStructure
+from .fs import fs
 from .interpret import Interpreter
 from .logging import LoggingClass
 from .util import prettyJson, strWithFileAtPath
@@ -11,7 +12,7 @@ from .util import prettyJson, strWithFileAtPath
 class Interactive(LoggingClass):
 
     def __init__(self):
-        LoggingClass.__init__(self, initLogging = True, loggingFormat = LoggingClass.noStampFormat)
+        LoggingClass.__init__(self)
         #self.setLevelDebug()
         self._interpreter = Interpreter(parseMode = "interactive")
         self._raiseOnError = False
@@ -122,8 +123,37 @@ class Interactive(LoggingClass):
     def _showDesignation(self, struc):
         print(" " + displayDesignation(struc))
 
+    def _handleDefinition(self, defined):
+        i = self._interpreter
+        if defined.fsType == fs.SlexDef:
+            return i.execute(i.instantiate(i.link(defined)))
+        elif defined.fsType == fs.SlotDef:
+            ms = i.link(defined)
+            if ms.concrete:
+                return ms.concrete
+            else:
+                return i.instantiate(ms)
+        elif defined.fsType == fs.SlotRef:
+            return i.instantiatedSlot(i.link(defined))
+        elif defined.fsType == fs.SlopDef:
+            return i.link(defined)
+        else:
+            raise Exception("Unhandled definition type `{}`".format(defined))
+
+    def _handle(self, inputString):
+        assert(isinstance(inputString, str))
+        i = self._interpreter
+        last = None
+        for defined in (i.define(i.parse(inputString)) or []):
+            res = self._handleDefinition(defined)
+            if not res:
+                break
+            if (not last) or (res != True):
+                last = res
+        return last
+
     def _cmd_n(self, resp):
-        res = self._interpreter.handle(resp)
+        res = self._handle(resp)
         if res == True:
             print(" OK")
         elif res:

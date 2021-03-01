@@ -53,14 +53,16 @@ class Executor(LoggingClass):
         inst = ctx.interpreter.instantiator
         assert(len(slex.args) == len(slop.params))
         for param, arg in zip(slop.params, slex.args):
+            self.debug("INSTp", param)
             inst.instantiateMetaSlot(param, arg)
 
         # instantiate the locals
         for loc in slop.locals:
-            inst.instantiateMetaSlot(loc)
+            if not loc.concrete:
+                self.debug("INSTl", loc)
+                inst.instantiateMetaSlot(loc)
 
         # instantiate the slexes, set up continuations
-        self.debug("instantiate drop steps:", slop.steps)
         myNext = exNode.next
         cur = exNode
         for ms in slop.steps:
@@ -75,7 +77,9 @@ class Executor(LoggingClass):
         #  (this is not an in issue for a singleton, serialized, tail-recursive executor)
         #  (in multi-executor environment, we'd probably have to hold a lock at the slop object)
         for ms in slop.params + slop.locals:
-            inst.uninstantiateMetaSlot(ms)
+            if not ms.concrete:
+                self.debug("unINST", ms)
+                inst.uninstantiateMetaSlot(ms)
 
         # continuation is set up and will be next executed
         self.debug("exec done, coming up:", exNode.next)

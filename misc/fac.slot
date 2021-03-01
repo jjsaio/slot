@@ -1,0 +1,21 @@
+
+|fac| > ![n, k] {
+    |c1| > 1
+    |recur| > ![] {
+        |decr|
+        |decrFac|
+        Integer_minus(decr, k, c1)
+        fac(decrFac, decr)
+        Integer_times(n, k, decrFac)
+    }
+    |base| > ![] { n = c1 }
+    |gt1|
+    Boolean_greaterThan(gt1, k, c1)
+    Slop_executeIfElse(recur, gt1, base)
+}
+
+|g| > 8
+|h|
+fac(h, g)
+
+Generic_print(h)

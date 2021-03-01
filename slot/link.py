@@ -35,6 +35,9 @@ class Linker(LoggingClass):
         assert(mslot.slotType)
         if sd.name:
             mslot.human = M.Human(name = sd.name)
+            namespace.addNamedSlot(sd.name, mslot)
+        else:
+            namespace.addSlot(mslot)
         if sd.slop:
             assert(not sd.constant)
             slop = self.linkSlopDef(sd.slop, namespace)
@@ -44,10 +47,6 @@ class Linker(LoggingClass):
             mslot.concrete = M.Slot(slotType = mslot.slotType)
             mslot.concrete.data = sd.constant[0] # can't use ctor since gencode uses `or None`
         assert(isinstance(mslot, M.MetaSlot))
-        if sd.name:
-            namespace.addNamedSlot(sd.name, mslot)
-        else:
-            namespace.addSlot(mslot)
         sd.linked = mslot
         return mslot
 
