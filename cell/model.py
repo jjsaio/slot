@@ -54,8 +54,8 @@ class ExecutionContext(object):
 
 class ExecutionNode(object):
 
-    def __init__(self, slex = None, executed = None, next = None, parent = None):
-        self.slex = slex or None  # type Slex
+    def __init__(self, do = None, executed = None, next = None, parent = None):
+        self.do = do or None  # type Do
         self.executed = executed or False  # type Boolean
         self.next = next or None  # type ExecutionNode
         self.parent = parent or None  # type ExecutionNode
@@ -70,7 +70,7 @@ class ExecutionNode(object):
 
     def defaultDict(self):
         return {
-            'slex' : self.slex or None,
+            'do' : self.do or None,
             'executed' : self.executed or False,
             'next' : self.next or None,
             'parent' : self.parent or None,
@@ -93,7 +93,7 @@ class ExecutionNode(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.slex = Slex().loadFromJson(json.get('slex'))
+        self.do = Do().loadFromJson(json.get('do'))
         self.executed = json.get('executed')
         self.next = ExecutionNode().loadFromJson(json.get('next'))
         self.parent = ExecutionNode().loadFromJson(json.get('parent'))
@@ -103,13 +103,13 @@ class ExecutionNode(object):
         d = { }
         if not skipTypes:
             d["type"] = self.typeName
-        if self.slex != None: d['slex'] = self.slex.json(skipTypes = skipTypes) if hasattr(self.slex, 'json') else id(self.slex)
+        if self.do != None: d['do'] = self.do.json(skipTypes = skipTypes) if hasattr(self.do, 'json') else id(self.do)
         if self.executed != None: d['executed'] = self.executed
         if self.next != None: d['next'] = self.next.json(skipTypes = skipTypes) if hasattr(self.next, 'json') else id(self.next)
         if self.parent != None: d['parent'] = self.parent.json(skipTypes = skipTypes) if hasattr(self.parent, 'json') else id(self.parent)
         return d
 
-class SlotType(object):
+class CellType(object):
 
     def __init__(self, nativeType = None, human = None):
         self.nativeType = nativeType or None  # type Object
@@ -117,11 +117,11 @@ class SlotType(object):
 
     @property
     def typeName(self):
-        return "SlotType"
+        return "CellType"
 
     @property
     def fsType(self):
-        return fs.SlotType
+        return fs.CellType
 
     def defaultDict(self):
         return {
@@ -130,10 +130,10 @@ class SlotType(object):
         }
 
     def _description(self):
-        return "SlotType: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+        return "CellType: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
 
     def _newObjectOfSameType(self):
-        return SlotType()
+        return CellType()
 
     def clone(self):
         c = self._newObjectOfSameType()
@@ -158,33 +158,33 @@ class SlotType(object):
         if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
         return d
 
-class Slot(object):
+class Cell(object):
 
-    def __init__(self, slotType = None, data = None, human = None):
-        self.slotType = slotType or None  # type SlotType
+    def __init__(self, cellType = None, data = None, human = None):
+        self.cellType = cellType or None  # type CellType
         self.data = data or None  # type Pointer
         self.human = human or None  # type Human
 
     @property
     def typeName(self):
-        return "Slot"
+        return "Cell"
 
     @property
     def fsType(self):
-        return fs.Slot
+        return fs.Cell
 
     def defaultDict(self):
         return {
-            'slotType' : self.slotType or None,
+            'cellType' : self.cellType or None,
             'data' : self.data or None,
             'human' : self.human or None,
         }
 
     def _description(self):
-        return "Slot: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+        return "Cell: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
 
     def _newObjectOfSameType(self):
-        return Slot()
+        return Cell()
 
     def clone(self):
         c = self._newObjectOfSameType()
@@ -197,7 +197,7 @@ class Slot(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.slotType = SlotType().loadFromJson(json.get('slotType'))
+        self.cellType = CellType().loadFromJson(json.get('cellType'))
         self.data = json.get('data')
         self.human = Human().loadFromJson(json.get('human'))
         return self
@@ -206,24 +206,24 @@ class Slot(object):
         d = { }
         if not skipTypes:
             d["type"] = self.typeName
-        if self.slotType != None: d['slotType'] = self.slotType.json(skipTypes = skipTypes) if hasattr(self.slotType, 'json') else id(self.slotType)
+        if self.cellType != None: d['cellType'] = self.cellType.json(skipTypes = skipTypes) if hasattr(self.cellType, 'json') else id(self.cellType)
         if self.data != None: d['data'] = id(self.data)
         if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
         return d
 
-class Slex(object):
+class Do(object):
 
     def __init__(self, op = None, args = None):
-        self.op = op or None  # type Slop
-        self.args = args or []  # type [Slot]
+        self.op = op or None  # type Cop
+        self.args = args or []  # type [Cell]
 
     @property
     def typeName(self):
-        return "Slex"
+        return "Do"
 
     @property
     def fsType(self):
-        return fs.Slex
+        return fs.Do
 
     def defaultDict(self):
         return {
@@ -232,10 +232,10 @@ class Slex(object):
         }
 
     def _description(self):
-        return "Slex: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+        return "Do: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
 
     def _newObjectOfSameType(self):
-        return Slex()
+        return Do()
 
     def clone(self):
         c = self._newObjectOfSameType()
@@ -248,8 +248,8 @@ class Slex(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.op = Slop().loadFromJson(json.get('op'))
-        self.args = [ Slot().loadFromJson(x) for x in json.get('args') or [] ]
+        self.op = Cop().loadFromJson(json.get('op'))
+        self.args = [ Cell().loadFromJson(x) for x in json.get('args') or [] ]
         return self
 
     def json(self, skipTypes = False):
@@ -260,19 +260,19 @@ class Slex(object):
         if self.args != None: d['args'] = [ x.json(skipTypes = skipTypes) for x in self.args ]
         return d
 
-class Slop(object):
+class Cop(object):
 
     def __init__(self, op = None, captured = None):
-        self.op = op or None  # type MetaSlop
-        self.captured = captured or []  # type [Slot]
+        self.op = op or None  # type MetaCop
+        self.captured = captured or []  # type [Cell]
 
     @property
     def typeName(self):
-        return "Slop"
+        return "Cop"
 
     @property
     def fsType(self):
-        return fs.Slop
+        return fs.Cop
 
     def defaultDict(self):
         return {
@@ -281,10 +281,10 @@ class Slop(object):
         }
 
     def _description(self):
-        return "Slop: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+        return "Cop: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
 
     def _newObjectOfSameType(self):
-        return Slop()
+        return Cop()
 
     def clone(self):
         c = self._newObjectOfSameType()
@@ -297,8 +297,8 @@ class Slop(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.op = MetaSlop().loadFromJson(json.get('op'))
-        self.captured = [ Slot().loadFromJson(x) for x in json.get('captured') or [] ]
+        self.op = MetaCop().loadFromJson(json.get('op'))
+        self.captured = [ Cell().loadFromJson(x) for x in json.get('captured') or [] ]
         return self
 
     def json(self, skipTypes = False):
@@ -309,23 +309,23 @@ class Slop(object):
         if self.captured != None: d['captured'] = [ x.json(skipTypes = skipTypes) for x in self.captured ]
         return d
 
-class MetaSlop(object):
+class MetaCop(object):
 
     def __init__(self, params = None, captured = None, locals = None, steps = None, native = None, human = None):
-        self.params = params or []  # type [MetaSlot]
-        self.captured = captured or []  # type [MetaSlot]
-        self.locals = locals or []  # type [MetaSlot]
-        self.steps = steps or []  # type [MetaSlex]
+        self.params = params or []  # type [MetaCell]
+        self.captured = captured or []  # type [MetaCell]
+        self.locals = locals or []  # type [MetaCell]
+        self.steps = steps or []  # type [MetaDo]
         self.native = native or None  # type Object
         self.human = human or None  # type Human
 
     @property
     def typeName(self):
-        return "MetaSlop"
+        return "MetaCop"
 
     @property
     def fsType(self):
-        return fs.MetaSlop
+        return fs.MetaCop
 
     def defaultDict(self):
         return {
@@ -338,10 +338,10 @@ class MetaSlop(object):
         }
 
     def _description(self):
-        return "MetaSlop: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+        return "MetaCop: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
 
     def _newObjectOfSameType(self):
-        return MetaSlop()
+        return MetaCop()
 
     def clone(self):
         c = self._newObjectOfSameType()
@@ -354,10 +354,10 @@ class MetaSlop(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.params = [ MetaSlot().loadFromJson(x) for x in json.get('params') or [] ]
-        self.captured = [ MetaSlot().loadFromJson(x) for x in json.get('captured') or [] ]
-        self.locals = [ MetaSlot().loadFromJson(x) for x in json.get('locals') or [] ]
-        self.steps = [ MetaSlex().loadFromJson(x) for x in json.get('steps') or [] ]
+        self.params = [ MetaCell().loadFromJson(x) for x in json.get('params') or [] ]
+        self.captured = [ MetaCell().loadFromJson(x) for x in json.get('captured') or [] ]
+        self.locals = [ MetaCell().loadFromJson(x) for x in json.get('locals') or [] ]
+        self.steps = [ MetaDo().loadFromJson(x) for x in json.get('steps') or [] ]
         self.native = Object().loadFromJson(json.get('native'))
         self.human = Human().loadFromJson(json.get('human'))
         return self
@@ -374,35 +374,35 @@ class MetaSlop(object):
         if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
         return d
 
-class MetaSlot(object):
+class MetaCell(object):
 
-    def __init__(self, slotType = None, concrete = None, instanced = None, human = None):
-        self.slotType = slotType or None  # type Slot
-        self.concrete = concrete or None  # type Slot
-        self.instanced = instanced or None  # type Slot
+    def __init__(self, cellType = None, concrete = None, instanced = None, human = None):
+        self.cellType = cellType or None  # type Cell
+        self.concrete = concrete or None  # type Cell
+        self.instanced = instanced or None  # type Cell
         self.human = human or None  # type Human
 
     @property
     def typeName(self):
-        return "MetaSlot"
+        return "MetaCell"
 
     @property
     def fsType(self):
-        return fs.MetaSlot
+        return fs.MetaCell
 
     def defaultDict(self):
         return {
-            'slotType' : self.slotType or None,
+            'cellType' : self.cellType or None,
             'concrete' : self.concrete or None,
             'instanced' : self.instanced or None,
             'human' : self.human or None,
         }
 
     def _description(self):
-        return "MetaSlot: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+        return "MetaCell: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
 
     def _newObjectOfSameType(self):
-        return MetaSlot()
+        return MetaCell()
 
     def clone(self):
         c = self._newObjectOfSameType()
@@ -415,9 +415,9 @@ class MetaSlot(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.slotType = Slot().loadFromJson(json.get('slotType'))
-        self.concrete = Slot().loadFromJson(json.get('concrete'))
-        self.instanced = Slot().loadFromJson(json.get('instanced'))
+        self.cellType = Cell().loadFromJson(json.get('cellType'))
+        self.concrete = Cell().loadFromJson(json.get('concrete'))
+        self.instanced = Cell().loadFromJson(json.get('instanced'))
         self.human = Human().loadFromJson(json.get('human'))
         return self
 
@@ -425,25 +425,25 @@ class MetaSlot(object):
         d = { }
         if not skipTypes:
             d["type"] = self.typeName
-        if self.slotType != None: d['slotType'] = self.slotType.json(skipTypes = skipTypes) if hasattr(self.slotType, 'json') else id(self.slotType)
+        if self.cellType != None: d['cellType'] = self.cellType.json(skipTypes = skipTypes) if hasattr(self.cellType, 'json') else id(self.cellType)
         if self.concrete != None: d['concrete'] = self.concrete.json(skipTypes = skipTypes) if hasattr(self.concrete, 'json') else id(self.concrete)
         if self.instanced != None: d['instanced'] = self.instanced.json(skipTypes = skipTypes) if hasattr(self.instanced, 'json') else id(self.instanced)
         if self.human != None: d['human'] = self.human.json(skipTypes = skipTypes) if hasattr(self.human, 'json') else id(self.human)
         return d
 
-class MetaSlex(object):
+class MetaDo(object):
 
     def __init__(self, op = None, args = None):
-        self.op = op or None  # type MetaSlot
-        self.args = args or []  # type [MetaSlot]
+        self.op = op or None  # type MetaCell
+        self.args = args or []  # type [MetaCell]
 
     @property
     def typeName(self):
-        return "MetaSlex"
+        return "MetaDo"
 
     @property
     def fsType(self):
-        return fs.MetaSlex
+        return fs.MetaDo
 
     def defaultDict(self):
         return {
@@ -452,10 +452,10 @@ class MetaSlex(object):
         }
 
     def _description(self):
-        return "MetaSlex: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+        return "MetaDo: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
 
     def _newObjectOfSameType(self):
-        return MetaSlex()
+        return MetaDo()
 
     def clone(self):
         c = self._newObjectOfSameType()
@@ -468,8 +468,8 @@ class MetaSlex(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.op = MetaSlot().loadFromJson(json.get('op'))
-        self.args = [ MetaSlot().loadFromJson(x) for x in json.get('args') or [] ]
+        self.op = MetaCell().loadFromJson(json.get('op'))
+        self.args = [ MetaCell().loadFromJson(x) for x in json.get('args') or [] ]
         return self
 
     def json(self, skipTypes = False):
@@ -480,20 +480,20 @@ class MetaSlex(object):
         if self.args != None: d['args'] = [ x.json(skipTypes = skipTypes) for x in self.args ]
         return d
 
-class SlopDef(object):
+class CopDef(object):
 
     def __init__(self, params = None, locals = None, steps = None):
-        self.params = params or []  # type [SlotDef]
-        self.locals = locals or []  # type [SlotDef]
-        self.steps = steps or []  # type [SlexDef]
+        self.params = params or []  # type [CellDef]
+        self.locals = locals or []  # type [CellDef]
+        self.steps = steps or []  # type [DoDef]
 
     @property
     def typeName(self):
-        return "SlopDef"
+        return "CopDef"
 
     @property
     def fsType(self):
-        return fs.SlopDef
+        return fs.CopDef
 
     def defaultDict(self):
         return {
@@ -503,10 +503,10 @@ class SlopDef(object):
         }
 
     def _description(self):
-        return "SlopDef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+        return "CopDef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
 
     def _newObjectOfSameType(self):
-        return SlopDef()
+        return CopDef()
 
     def clone(self):
         c = self._newObjectOfSameType()
@@ -519,9 +519,9 @@ class SlopDef(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.params = [ SlotDef().loadFromJson(x) for x in json.get('params') or [] ]
-        self.locals = [ SlotDef().loadFromJson(x) for x in json.get('locals') or [] ]
-        self.steps = [ SlexDef().loadFromJson(x) for x in json.get('steps') or [] ]
+        self.params = [ CellDef().loadFromJson(x) for x in json.get('params') or [] ]
+        self.locals = [ CellDef().loadFromJson(x) for x in json.get('locals') or [] ]
+        self.steps = [ DoDef().loadFromJson(x) for x in json.get('steps') or [] ]
         return self
 
     def json(self, skipTypes = False):
@@ -533,31 +533,31 @@ class SlopDef(object):
         if self.steps != None: d['steps'] = [ x.json(skipTypes = skipTypes) for x in self.steps ]
         return d
 
-class SlotRef(object):
+class CellRef(object):
 
-    def __init__(self, name = None, slot = None):
+    def __init__(self, name = None, cell = None):
         self.name = name or ''  # type String
-        self.slot = slot or None  # type SlotDef
+        self.cell = cell or None  # type CellDef
 
     @property
     def typeName(self):
-        return "SlotRef"
+        return "CellRef"
 
     @property
     def fsType(self):
-        return fs.SlotRef
+        return fs.CellRef
 
     def defaultDict(self):
         return {
             'name' : self.name or '',
-            'slot' : self.slot or None,
+            'cell' : self.cell or None,
         }
 
     def _description(self):
-        return "SlotRef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+        return "CellRef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
 
     def _newObjectOfSameType(self):
-        return SlotRef()
+        return CellRef()
 
     def clone(self):
         c = self._newObjectOfSameType()
@@ -571,7 +571,7 @@ class SlotRef(object):
         if not json:
             return self
         self.name = json.get('name')
-        self.slot = SlotDef().loadFromJson(json.get('slot'))
+        self.cell = CellDef().loadFromJson(json.get('cell'))
         return self
 
     def json(self, skipTypes = False):
@@ -579,40 +579,40 @@ class SlotRef(object):
         if not skipTypes:
             d["type"] = self.typeName
         if self.name != None: d['name'] = self.name
-        if self.slot != None: d['slot'] = self.slot.json(skipTypes = skipTypes) if hasattr(self.slot, 'json') else id(self.slot)
+        if self.cell != None: d['cell'] = self.cell.json(skipTypes = skipTypes) if hasattr(self.cell, 'json') else id(self.cell)
         return d
 
-class SlotDef(object):
+class CellDef(object):
 
-    def __init__(self, name = None, slotType = None, constant = None, slop = None, linked = None):
+    def __init__(self, name = None, cellType = None, constant = None, cop = None, linked = None):
         self.name = name or ''  # type String
-        self.slotType = slotType or ''  # type String
+        self.cellType = cellType or ''  # type String
         self.constant = constant or None  # type Object
-        self.slop = slop or None  # type SlopDef
-        self.linked = linked or None  # type MetaSlot
+        self.cop = cop or None  # type CopDef
+        self.linked = linked or None  # type MetaCell
 
     @property
     def typeName(self):
-        return "SlotDef"
+        return "CellDef"
 
     @property
     def fsType(self):
-        return fs.SlotDef
+        return fs.CellDef
 
     def defaultDict(self):
         return {
             'name' : self.name or '',
-            'slotType' : self.slotType or '',
+            'cellType' : self.cellType or '',
             'constant' : self.constant or None,
-            'slop' : self.slop or None,
+            'cop' : self.cop or None,
             'linked' : self.linked or None,
         }
 
     def _description(self):
-        return "SlotDef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+        return "CellDef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
 
     def _newObjectOfSameType(self):
-        return SlotDef()
+        return CellDef()
 
     def clone(self):
         c = self._newObjectOfSameType()
@@ -626,10 +626,10 @@ class SlotDef(object):
         if not json:
             return self
         self.name = json.get('name')
-        self.slotType = json.get('slotType')
+        self.cellType = json.get('cellType')
         self.constant = Object().loadFromJson(json.get('constant'))
-        self.slop = SlopDef().loadFromJson(json.get('slop'))
-        self.linked = MetaSlot().loadFromJson(json.get('linked'))
+        self.cop = CopDef().loadFromJson(json.get('cop'))
+        self.linked = MetaCell().loadFromJson(json.get('linked'))
         return self
 
     def json(self, skipTypes = False):
@@ -637,25 +637,25 @@ class SlotDef(object):
         if not skipTypes:
             d["type"] = self.typeName
         if self.name != None: d['name'] = self.name
-        if self.slotType != None: d['slotType'] = self.slotType
+        if self.cellType != None: d['cellType'] = self.cellType
         if self.constant != None: d['constant'] = self.constant.json(skipTypes = skipTypes) if hasattr(self.constant, 'json') else id(self.constant)
-        if self.slop != None: d['slop'] = self.slop.json(skipTypes = skipTypes) if hasattr(self.slop, 'json') else id(self.slop)
+        if self.cop != None: d['cop'] = self.cop.json(skipTypes = skipTypes) if hasattr(self.cop, 'json') else id(self.cop)
         if self.linked != None: d['linked'] = self.linked.json(skipTypes = skipTypes) if hasattr(self.linked, 'json') else id(self.linked)
         return d
 
-class SlexDef(object):
+class DoDef(object):
 
     def __init__(self, op = None, args = None):
-        self.op = op or None  # type SlotRef
-        self.args = args or []  # type [SlotRef]
+        self.op = op or None  # type CellRef
+        self.args = args or []  # type [CellRef]
 
     @property
     def typeName(self):
-        return "SlexDef"
+        return "DoDef"
 
     @property
     def fsType(self):
-        return fs.SlexDef
+        return fs.DoDef
 
     def defaultDict(self):
         return {
@@ -664,10 +664,10 @@ class SlexDef(object):
         }
 
     def _description(self):
-        return "SlexDef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+        return "DoDef: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
 
     def _newObjectOfSameType(self):
-        return SlexDef()
+        return DoDef()
 
     def clone(self):
         c = self._newObjectOfSameType()
@@ -680,8 +680,8 @@ class SlexDef(object):
     def loadFromJson(self, json):
         if not json:
             return self
-        self.op = SlotRef().loadFromJson(json.get('op'))
-        self.args = [ SlotRef().loadFromJson(x) for x in json.get('args') or [] ]
+        self.op = CellRef().loadFromJson(json.get('op'))
+        self.args = [ CellRef().loadFromJson(x) for x in json.get('args') or [] ]
         return self
 
     def json(self, skipTypes = False):
@@ -748,17 +748,17 @@ def newObjectOfType(type):
 _g_fsMap = {
     fs.ExecutionContext : ExecutionContext,
     fs.ExecutionNode : ExecutionNode,
-    fs.SlotType : SlotType,
-    fs.Slot : Slot,
-    fs.Slex : Slex,
-    fs.Slop : Slop,
-    fs.MetaSlop : MetaSlop,
-    fs.MetaSlot : MetaSlot,
-    fs.MetaSlex : MetaSlex,
-    fs.SlopDef : SlopDef,
-    fs.SlotRef : SlotRef,
-    fs.SlotDef : SlotDef,
-    fs.SlexDef : SlexDef,
+    fs.CellType : CellType,
+    fs.Cell : Cell,
+    fs.Do : Do,
+    fs.Cop : Cop,
+    fs.MetaCop : MetaCop,
+    fs.MetaCell : MetaCell,
+    fs.MetaDo : MetaDo,
+    fs.CopDef : CopDef,
+    fs.CellRef : CellRef,
+    fs.CellDef : CellDef,
+    fs.DoDef : DoDef,
     fs.Human : Human,
 }
 

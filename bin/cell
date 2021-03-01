@@ -1,8 +1,8 @@
 #!/bin/bash
 
 SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
-SLOT_HOME="${SCRIPT_PATH}/.."
-PYPATH="${SLOT_HOME}"
+CELL_HOME="${SCRIPT_PATH}/.."
+PYPATH="${CELL_HOME}"
 
 if [[ $# -eq 0 ]] ; then
    PYTHONPATH="${PYPATH}" python3
@@ -11,5 +11,5 @@ elif [ "${1: -3}" == ".py" ] ; then
 elif [ "$1" == "-m" ] ; then
    PYTHONPATH="${PYPATH}" python3 "$@"
 else
-   PYTHONPATH="${PYPATH}" python3 -m driver "slot.$@"
+   PYTHONPATH="${PYPATH}" python3 -m driver "cell.$@"
 fi

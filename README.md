@@ -1,4 +1,4 @@
-# slot
+# cell
 
 Install
 -------
@@ -7,11 +7,11 @@ Install
 
 ```
 $ sudo pip3 install lark-parser
-$ git clone https://github.com/jjsaio/slot
-$ cd slot
-$ ./bin/slot interactive
->s> |x|
-  <Slot:*>
+$ git clone https://github.com/jjsaio/cell
+$ cd cell
+$ ./bin/cell interactive
+>n> |x|
+  <Nil:Nil>
 >s> .q
 Bye!
 ```
@@ -22,11 +22,11 @@ Some examples
 This will show some of the basic operation of interactive-mode:
 
 ```
-$ ./bin/slot interactive
+$ ./bin/cell interactive
 >s> .b misc/demo.batch
-[INFO Slot] batch start:  misc/demo.batch
+[INFO] batch start:  misc/demo.batch
 ...
-[INFO Slot] batch done
+[INFO] batch done
 >s> 
 ```
 

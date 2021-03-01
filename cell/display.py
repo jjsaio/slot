@@ -7,17 +7,17 @@ def _displayType(x):
 
 def displayStructure(x):
     t = type(x).__name__
-    if isinstance(x, M.Slot):
-        d = _displayType(x.slotType)
-    elif isinstance(x, M.MetaSlot):
+    if isinstance(x, M.Cell):
+        d = _displayType(x.cellType)
+    elif isinstance(x, M.MetaCell):
         if x.concrete:
             d = "C"
         else:
             d = "I"
-        d = "{}[{}]".format(d, _displayType(x.slotType))
-    elif isinstance(x, M.Slop) or isinstance(x, M.MetaSlop):
+        d = "{}[{}]".format(d, _displayType(x.cellType))
+    elif isinstance(x, M.Cop) or isinstance(x, M.MetaCop):
         d = "..." # TBD
-    elif isinstance(x, M.Slex):
+    elif isinstance(x, M.Do):
         d = "..."  # TBD
     elif callable(x):
         d = impl.__name__
@@ -30,32 +30,32 @@ def displayStructure(x):
         d = repr(x)
     return "<< {} : {} >>".format(t, d)
 
-def debugString_Slex(x):
-    return "Slex[{}({})]".format(debugString(x.op.op.human),
+def debugString_Do(x):
+    return "Do[{}({})]".format(debugString(x.op.op.human),
                                  ", ".join([ debugString(y.human) for y in x.args ]))
 
-def debugString_MetaSlex(x):
-    return "MetaSlex[{}({})]".format(debugString(x.op.human),
+def debugString_MetaDo(x):
+    return "MetaDo[{}({})]".format(debugString(x.op.human),
                                      ", ".join([ debugString(y.human) for y in x.args ]))
 
 def debugString_Human(x):
     return x.name
 
-def debugString_MetaSlot(x):
-    return "MetaSlot[{}:{}:{}]".format("C" if x.concrete else "I",
+def debugString_MetaCell(x):
+    return "MetaCell[{}:{}:{}]".format("C" if x.concrete else "I",
                                        debugString(x.human),
-                                       debugString(x.slotType.human))
+                                       debugString(x.cellType.human))
 
-def debugString_MetaSlop(x):
-    return "MetaSlop[{}![{}]|{}|<{}>{{{}}}@{:x}]".format(debugString(x.human),
+def debugString_MetaCop(x):
+    return "MetaCop[{}![{}]|{}|<{}>{{{}}}@{:x}]".format(debugString(x.human),
                                                          ", ".join([ debugString(y.human) for y in x.params]),
                                                          ", ".join([ debugString(y.human) for y in x.locals]),
                                                          ", ".join([ debugString(y.human) for y in x.captured]),
                                                          len(x.steps),
                                                          id(x) & 0xffff)
 
-def debugString_Slop(x):
-    return "Slop<{}>[{}![{}]|{}|<{}>{{{}}}@{:x}]".format(", ".join([ debugString(y.human) for y in x.captured]),
+def debugString_Cop(x):
+    return "Cop<{}>[{}![{}]|{}|<{}>{{{}}}@{:x}]".format(", ".join([ debugString(y.human) for y in x.captured]),
                                                          debugString(x.op.human),
                                                          ", ".join([ debugString(y.human) for y in x.op.params]),
                                                          ", ".join([ debugString(y.human) for y in x.op.locals]),
@@ -85,10 +85,10 @@ _designationTypeLookup = {
     "float" : "Real Number",
     "str" : "Word",
     "String" : "Word",
-    "MetaSlop" : "Behavior",
-    "Slop" : "Behavior",
-    "Slex" : "Process",
-    "Slot" : "Structure",
+    "MetaCop" : "Behavior",
+    "Cop" : "Behavior",
+    "Do" : "Process",
+    "Cell" : "Structure",
 }
 
 _structureTypeLookup = {
@@ -101,14 +101,14 @@ _structureTypeLookup = {
 
 def displayDesignation(x):
     t = None
-    if isinstance(x, M.Slot):
-        if x.slotType:
-            t = x.slotType.human.name
+    if isinstance(x, M.Cell):
+        if x.cellType:
+            t = x.cellType.human.name
         if (not t) or (t == 'Generic'):
             t = type(x.data).__name__
         if hasattr(x.data, 'fsType'): # is it a model object?
             d = "..."
-            if isinstance(x.data, M.Slot):
+            if isinstance(x.data, M.Cell):
                 st = type(x.data.data).__name__
                 d = _structureTypeLookup.get(st, st) + "..."
         elif (x.data == None):

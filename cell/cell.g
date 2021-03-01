@@ -1,42 +1,42 @@
 
 
 // the interpreter, when parsing a program file
-// always produces a slop, which is in spirit `main`
+// always produces a cop, which is in spirit `main`
 // TAI: library files, modules, etc -- what's the right way
-//   --> which is essentially a collection of named slots that other programs can use
+//   --> which is essentially a collection of named cells that other programs can use
 //   --> another context you can merge-in; probably do objects first, then get there
-interpreter: slop_body
+interpreter: cop_body
 
-// interactive mode: individual steps or ability to see slots
-interactive: slop_step | slot
+// interactive mode: individual steps or ability to see cells
+interactive: cop_step | cell
 
 
 //---------------------
 // kernel
 //---------------------
 
-slop: "!" slop_params "{" slop_body "}"
-slop_params: "[" (slot_spec ",")* slot_spec? "]"
-slop_body: (slop_step (";" | "\n"))* slop_step?
-slop_step: slot_def | slex | syntactic_shortcut | comment
+cop: "!" cop_params "{" cop_body "}"
+cop_params: "[" (cell_spec ",")* cell_spec? "]"
+cop_body: (cop_step (";" | "\n"))* cop_step?
+cop_step: cell_def | do | syntactic_shortcut | comment
 
-slex: slex_call
-slex_call: slex_op slex_args
-slex_op: slot
-slex_args: "(" (slot ",")* slot? ")"
+do: do_call
+do_call: do_op do_args
+do_op: cell
+do_args: "(" (cell ",")* cell? ")"
 
-slot_spec: slot_name (":" slot_name )?
-slot_def: "|" slot_spec "|" (">" constant)?
-slot: slot_ref
-slot_name: NAME
-slot_ref: slot_name
+cell_spec: cell_name (":" cell_name )?
+cell_def: "|" cell_spec "|" (">" constant)?
+cell: cell_ref
+cell_name: NAME
+cell_ref: cell_name
 
 
 //----------------------
 // constants
 //----------------------
 
-constant: slop | literal
+constant: cop | literal
 
 literal: STRING | INTEGER | REAL | BOOLEAN | NIL
 

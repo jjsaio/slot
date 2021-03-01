@@ -114,8 +114,8 @@ class Interpreter(LoggingClass):
         except Exception as e:
             raise Exception("Instantiation failed: {}".format(e))
 
-    def instantiatedSlot(self, mslot):
-        return self._instantiator.instantiatedSlot(mslot)
+    def instantiatedCell(self, mcell):
+        return self._instantiator.instantiatedCell(mcell)
 
 
     @property
@@ -148,6 +148,6 @@ class Interpreter(LoggingClass):
 
     def run(self, path):
         script = strWithFileAtPath(path)
-        slop = self.link(self.define(self.parse(script)))
-        slop.human = M.Human(name = "__main__")
-        self.execute(self.instantiate(M.MetaSlex(op = M.MetaSlot(concrete = M.Slot(data = slop)))))
+        cop = self.link(self.define(self.parse(script)))
+        cop.human = M.Human(name = "__main__")
+        self.execute(self.instantiate(M.MetaDo(op = M.MetaCell(concrete = M.Cell(data = cop)))))

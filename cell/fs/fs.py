@@ -1118,24 +1118,24 @@ Expr = 1137
 Value = 1138
 Closure = 1139
 Handle = 1140
-Slot = 1141
-Slop = 1142
-Slex = 1143
+Cell = 1141
+Cop = 1142
+Do = 1143
 Human = 1144
 Command = 1145
-SlotRef = 1146
+CellRef = 1146
 Deactivate = 1147
 droppedPackets = 1148
 oooPackets = 1149
-MetaSlot = 1150
-MetaSlex = 1151
-SlopDef = 1152
-SlotDef = 1153
-SlexDef = 1154
-SlotType = 1155
+MetaCell = 1150
+MetaDo = 1151
+CopDef = 1152
+CellDef = 1153
+DoDef = 1154
+CellType = 1155
 ExecutionNode = 1156
 ExecutionContext = 1157
-MetaSlop = 1158
+MetaCop = 1158
 
 g_fsMap = {
     APIChannel : "APIChannel",
@@ -1181,6 +1181,10 @@ g_fsMap = {
     CallStatsRequest : "CallStatsRequest",
     Case : "Case",
     CaseInfo : "CaseInfo",
+    Cell : "Cell",
+    CellDef : "CellDef",
+    CellRef : "CellRef",
+    CellType : "CellType",
     Channel : "Channel",
     ChannelDispatcher : "ChannelDispatcher",
     ChannelEntry : "ChannelEntry",
@@ -1225,6 +1229,8 @@ g_fsMap = {
     ConnectionInfo : "ConnectionInfo",
     ConnectionStats : "ConnectionStats",
     Container : "Container",
+    Cop : "Cop",
+    CopDef : "CopDef",
     Count : "Count",
     CountEntry : "CountEntry",
     Courier : "Courier",
@@ -1240,6 +1246,8 @@ g_fsMap = {
     DirectVoipCall : "DirectVoipCall",
     Distributor : "Distributor",
     DistributorItem : "DistributorItem",
+    Do : "Do",
+    DoDef : "DoDef",
     DockTitle : "DockTitle",
     Encryptor : "Encryptor",
     EndCall : "EndCall",
@@ -1374,9 +1382,9 @@ g_fsMap = {
     MerkleNode : "MerkleNode",
     MerkleTree : "MerkleTree",
     Message : "Message",
-    MetaSlex : "MetaSlex",
-    MetaSlop : "MetaSlop",
-    MetaSlot : "MetaSlot",
+    MetaCell : "MetaCell",
+    MetaCop : "MetaCop",
+    MetaDo : "MetaDo",
     MixerPeerInfo : "MixerPeerInfo",
     MotifQuery : "MotifQuery",
     Motifs : "Motifs",
@@ -1577,14 +1585,6 @@ g_fsMap = {
     Show : "Show",
     ShowPopup : "ShowPopup",
     Shutdown : "Shutdown",
-    Slex : "Slex",
-    SlexDef : "SlexDef",
-    Slop : "Slop",
-    SlopDef : "SlopDef",
-    Slot : "Slot",
-    SlotDef : "SlotDef",
-    SlotRef : "SlotRef",
-    SlotType : "SlotType",
     SocketClose : "SocketClose",
     SocketError : "SocketError",
     SocketPlumbing : "SocketPlumbing",

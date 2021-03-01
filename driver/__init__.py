@@ -2,7 +2,7 @@ import sys
 import traceback
 
 def usage():
-    print('Usage: slot [module.function] [args]')
+    print('Usage: cell [module.function] [args]')
     raise QuietFailureException()
 
 

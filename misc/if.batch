@@ -1,13 +1,13 @@
 n |x|
 n |y|
-n Slot_copy(x, ![]{ plus(y,4,5) })
-n Slop_execute(x)
+n Cell_copy(x, ![]{ plus(y,4,5) })
+n Cop_execute(x)
 n x
 n y
 n |z:Boolean|
 n y = 7
-n Slop_execute_if(x, z)
+n Cop_execute_if(x, z)
 n y
 n z = $t
-n Slop_execute_if(x, z)
+n Cop_execute_if(x, z)
 n y

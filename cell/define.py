@@ -48,8 +48,8 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
     def interpreter(self, args):
         assert(1 == len(args))
         assert(isinstance(args[0], list))
-        sd = self.slop([ [], args[0] ])
-        assert(isinstance(sd, M.SlopDef))
+        sd = self.cop([ [], args[0] ])
+        assert(isinstance(sd, M.CopDef))
         return sd
 
     #------- kernel defs
@@ -63,101 +63,101 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
                 steps.append(arg)
         return steps
 
-    def slop(self, args):
-        slopDef = M.SlopDef(params = args[0])
+    def cop(self, args):
+        copDef = M.CopDef(params = args[0])
         for step in self._flattenSteps(args[1]):
-            if isinstance(step, M.SlotDef):
-                slopDef.locals.append(step)
+            if isinstance(step, M.CellDef):
+                copDef.locals.append(step)
             else:
-                assert(isinstance(step, M.SlexDef))
-                slopDef.steps.append(step)
-        for s in slopDef.params + slopDef.locals:
-            assert(isinstance(s, M.SlotDef))
-        return slopDef
+                assert(isinstance(step, M.DoDef))
+                copDef.steps.append(step)
+        for s in copDef.params + copDef.locals:
+            assert(isinstance(s, M.CellDef))
+        return copDef
 
-    def slop_params(self, args):
+    def cop_params(self, args):
         for arg in args:
             assert(arg.name)
         return args
 
-    def slop_body(self, args):
+    def cop_body(self, args):
         return [ x for x in args if x ] # drops comments
 
-    def slop_step(self, args):
+    def cop_step(self, args):
         assert(1 == len(args))
-        assert(isinstance(args[0], M.SlotDef) or isinstance(args[0], M.SlexDef) or isinstance(args[0], list) or (not args[0]))
+        assert(isinstance(args[0], M.CellDef) or isinstance(args[0], M.DoDef) or isinstance(args[0], list) or (not args[0]))
         return args[0]
 
     def comment(self, args):
         return None
 
 
-    def slex(self, args):
+    def do(self, args):
         assert(1 == len(args))
-        assert(isinstance(args[0], M.SlexDef))
+        assert(isinstance(args[0], M.DoDef))
         return args[0]
 
-    def slex_call(self, args):
+    def do_call(self, args):
         assert(2 == len(args))
-        assert(isinstance(args[0], M.SlotRef))
+        assert(isinstance(args[0], M.CellRef))
         assert(isinstance(args[1], list))
         for arg in args[1]:
-            assert(isinstance(arg, M.SlotRef))
-        return M.SlexDef(op = args[0], args = args[1])
+            assert(isinstance(arg, M.CellRef))
+        return M.DoDef(op = args[0], args = args[1])
 
-    def slex_op(self, args):
+    def do_op(self, args):
         assert(1 == len(args))
-        assert(isinstance(args[0], M.SlotRef))
+        assert(isinstance(args[0], M.CellRef))
         return args[0]
 
-    def slex_args(self, args):
+    def do_args(self, args):
         return args
 
 
-    def slot_spec(self, args):
+    def cell_spec(self, args):
         assert(len(args) >= 1  and  len(args) <= 2)
         assert(isinstance(args[0], str))
-        slotDef = M.SlotDef(name = args[0])
+        cellDef = M.CellDef(name = args[0])
         if len(args) > 1:
             assert(isinstance(args[1], str))
-            slotDef.slotType = args[1]
-        return slotDef
+            cellDef.cellType = args[1]
+        return cellDef
 
-    def slot_def(self, args):
+    def cell_def(self, args):
         for arg in args:
-            assert(isinstance(arg, M.SlotDef))
+            assert(isinstance(arg, M.CellDef))
         if len(args) == 2:
             spec, const = args
-            assert((not spec.slotType) or (spec.slotType == const.slotType))
+            assert((not spec.cellType) or (spec.cellType == const.cellType))
             assert(not const.name)
             const.name = spec.name
             return const
         else:
             return args[0]
 
-    def slot(self, args):
+    def cell(self, args):
         assert(1 == len(args))
-        assert(isinstance(args[0], M.SlotRef))
+        assert(isinstance(args[0], M.CellRef))
         return args[0]
 
-    def slot_name(self, args):
+    def cell_name(self, args):
         assert(1 == len(args))
         return args[0].value
 
-    def slot_ref(self, args):
+    def cell_ref(self, args):
         assert(1 == len(args))
         assert(isinstance(args[0], str))
-        return M.SlotRef(name = args[0])
+        return M.CellRef(name = args[0])
 
 
     #------- constants
 
     def constant(self, args):
         assert(1 == len(args))
-        if isinstance(args[0], M.SlopDef):
-            return M.SlotDef(slop = args[0])
+        if isinstance(args[0], M.CopDef):
+            return M.CellDef(cop = args[0])
         sd = args[0]
-        assert(isinstance(sd, M.SlotDef))
+        assert(isinstance(sd, M.CellDef))
         assert(sd.constant and isinstance(sd.constant, list)) # this is so we can use `if sd.constant` more clearly
         return sd
 
@@ -169,20 +169,20 @@ class KernelDefinitionMaker(lark.Transformer, LoggingClass):
         return self._token_dispatch("literal", args[0])
 
     def _literal_INTEGER(self, val):
-        return M.SlotDef(slotType = "Integer", constant = [ int(val) ])
+        return M.CellDef(cellType = "Integer", constant = [ int(val) ])
 
     def _literal_STRING(self, val):
         assert((val[0] in [ '"', "'" ]) and (val[-1] in [ '"', "'" ]))
-        return M.SlotDef(slotType = "String", constant = [ val[1:-1] ])
+        return M.CellDef(cellType = "String", constant = [ val[1:-1] ])
 
     def _literal_BOOLEAN(self, val):
-        return M.SlotDef(slotType = "Boolean", constant = [ { "$t" : True, "$f" : False}[val] ])
+        return M.CellDef(cellType = "Boolean", constant = [ { "$t" : True, "$f" : False}[val] ])
 
     def _literal_REAL(self, val):
-        return M.SlotDef(slotType = "Real", constant = [ float(val) ])
+        return M.CellDef(cellType = "Real", constant = [ float(val) ])
 
     def _literal_NIL(self, val):
-        return M.SlotDef(slotType = "Nil", constant = [ None ])
+        return M.CellDef(cellType = "Nil", constant = [ None ])
 
 
 
@@ -203,36 +203,36 @@ class ExtendedDefinitionMaker(KernelDefinitionMaker):
     def up(self, args):
         assert(1 == len(args))
         ref = args[0]
-        assert(isinstance(ref, M.SlotRef))
-        sd = M.SlotDef(slotType = "Slot")
-        slex = M.SlexDef(op = M.SlotRef(name = "Generic_up"),
-                         args = [ ref, M.SlotRef(slot = sd, name = "_↑{}_".format(ref.name)) ])
-        return [ sd, slex ]
+        assert(isinstance(ref, M.CellRef))
+        sd = M.CellDef(cellType = "Cell")
+        do = M.DoDef(op = M.CellRef(name = "Generic_up"),
+                         args = [ ref, M.CellRef(cell = sd, name = "_↑{}_".format(ref.name)) ])
+        return [ sd, do ]
 
     def down(self, args):
         assert(1 == len(args))
         ref = args[0]
-        assert(isinstance(ref, M.SlotRef))
-        sd = M.SlotDef(slotType = "Generic")
-        slex = M.SlexDef(op = M.SlotRef(name = "Slot_down"),
-                         args = [ ref, M.SlotRef(slot = sd, name = "_↓{}_".format(ref.name)) ])
-        return [ sd, slex ]
+        assert(isinstance(ref, M.CellRef))
+        sd = M.CellDef(cellType = "Generic")
+        do = M.DoDef(op = M.CellRef(name = "Cell_down"),
+                         args = [ ref, M.CellRef(cell = sd, name = "_↓{}_".format(ref.name)) ])
+        return [ sd, do ]
 
 
     #------- assignment / ctor
 
     def assignment(self, args):
         assert(2 == len(args))
-        assert(isinstance(args[0], M.SlotRef))
-        assert(isinstance(args[1], M.SlotRef))
+        assert(isinstance(args[0], M.CellRef))
+        assert(isinstance(args[1], M.CellRef))
         destAscension = self.up([ args[0] ])
         sourceAscension = self.up([ args[1] ])
-        slex = M.SlexDef(op = M.SlotRef(name = "Slot_copy"),
-                         args = [ M.SlotRef(slot = destAscension[0]), M.SlotRef(slot = sourceAscension[0]) ])
-        return destAscension + sourceAscension + [ slex ]
+        do = M.DoDef(op = M.CellRef(name = "Cell_copy"),
+                         args = [ M.CellRef(cell = destAscension[0]), M.CellRef(cell = sourceAscension[0]) ])
+        return destAscension + sourceAscension + [ do ]
 
     def constructor(self, args):
         assert(2 == len(args))
-        assert(isinstance(args[0], M.SlotDef))
-        assert(isinstance(args[1], M.SlotRef))
-        return [ args[0] ] + self.assignment([ M.SlotRef(slot = args[0]), args[1] ])
+        assert(isinstance(args[0], M.CellDef))
+        assert(isinstance(args[1], M.CellRef))
+        return [ args[0] ] + self.assignment([ M.CellRef(cell = args[0]), args[1] ])

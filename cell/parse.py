@@ -17,7 +17,7 @@ class Parser(object):
         self.mode = mode
         self.shortcuts = shortcuts
         self.grammar = "start: {}\n".format(self.mode)
-        self.grammar += strWithFileAtPath(moduleFile(__file__, 'slot.g'))
+        self.grammar += strWithFileAtPath(moduleFile(__file__, 'cell.g'))
         if shortcuts:
             self.grammar += strWithFileAtPath(moduleFile(__file__, 'shortcuts.g'))
         else:
@@ -44,7 +44,7 @@ class ParseTree(object):
 
     def visualize(self, png_path = None, show = False):
         from lark.tree import pydot__tree_to_png
-        png_path = png_path or "/tmp/slot.png"
+        png_path = png_path or "/tmp/cell.png"
         pydot__tree_to_png(self.tree, png_path)
         if show:
             import subprocess

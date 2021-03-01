@@ -125,17 +125,17 @@ class Interactive(LoggingClass):
 
     def _handleDefinition(self, defined):
         i = self._interpreter
-        if defined.fsType == fs.SlexDef:
+        if defined.fsType == fs.DoDef:
             return i.execute(i.instantiate(i.link(defined)))
-        elif defined.fsType == fs.SlotDef:
+        elif defined.fsType == fs.CellDef:
             ms = i.link(defined)
             if ms.concrete:
                 return ms.concrete
             else:
                 return i.instantiate(ms)
-        elif defined.fsType == fs.SlotRef:
-            return i.instantiatedSlot(i.link(defined))
-        elif defined.fsType == fs.SlopDef:
+        elif defined.fsType == fs.CellRef:
+            return i.instantiatedCell(i.link(defined))
+        elif defined.fsType == fs.CopDef:
             return i.link(defined)
         else:
             raise Exception("Unhandled definition type `{}`".format(defined))

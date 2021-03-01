@@ -13,7 +13,7 @@
     Generic_print(k)
     #_printNextInstructions()
     Boolean_greaterThan(gt1, k, c1)
-    Slop_executeIfElse(recur, gt1, base)
+    Cop_executeIfElse(recur, gt1, base)
 }
 
 |g| > 8

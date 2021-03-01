@@ -6,11 +6,11 @@ Terminology (proposals)
   conversations, so things that are in english (perhaps embellished
   with symbols) can denote things we like to talk aboute.
 
-- "33s": (from 3Lisp/3Py/Slot): denotes any sort of semantically
+- "33s": (from 3Lisp/3Py/Cell): denotes any sort of semantically
   rationalized and reflective PL.
 
-- "Slot": denotes the 33s that i'm currently working on, distinguished
-  from 3py in that Slot has a different programming model.
+- "Cell": denotes the 33s that i'm currently working on, distinguished
+  from 3py in that Cell has a different programming model.
 
 - "function": i think we need to abandon this word completely, it's
   too overloaded. let's use "ST-function" to denote "set-theoretic
