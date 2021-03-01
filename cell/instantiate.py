@@ -59,10 +59,10 @@ class Instantiator(LoggingClass):
         assert(isinstance(opCell, M.Cell))
         cop = opCell.data
         if isinstance(cop, M.MetaCop):
-            assert(not cop.captured)
-            cop = M.Cop(op = cop)
+            cop = M.Cop(op = cop,
+                        captured = [ self.instantiatedCell(c) for c in cop.captured ])
         do = M.Do(op = cop,
-                      args = [ self.instantiatedCell(a) for a in mdo.args ])
+                  args = [ self.instantiatedCell(a) for a in mdo.args ])
         self.debug("instantiated ", debugString(do))
         return do
 

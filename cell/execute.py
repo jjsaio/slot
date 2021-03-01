@@ -21,6 +21,7 @@ class Executor(LoggingClass):
         assert(isinstance(do, M.Do))
         cur = M.ExecutionNode(do = do)
         if self._execContext.node:
+            cur.parent = self._execContext.node
             cur.next = self._execContext.node.next
             self._execContext.node.next = cur
             return

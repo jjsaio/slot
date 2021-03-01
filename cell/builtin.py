@@ -59,14 +59,14 @@ def _Cop_execute(ctx):
     do = ctx.node.do
     cop = do.args[0]
     assert(isinstance(cop.data, M.Cop))
-    ctx.interpreter.executor.executeDo(M.Do(op = cop.data))
+    ctx.interpreter.executor.execute(M.Do(op = cop.data))
 
 def _Cop_executeIf(ctx):
     do = ctx.node.do
     cop, cond = do.args
     if cond.data:
         assert(isinstance(cop.data, M.Cop))
-        ctx.interpreter.excute(M.Do(op = cop.data))
+        ctx.interpreter.execute(M.Do(op = cop.data))
 
 def _Cop_executeIfElse(ctx):
     do = ctx.node.do
@@ -105,7 +105,7 @@ def _printDoStack(ctx, startNode = None):
     cur = startNode or ctx.node
     level = 0
     while cur:
-        print("  [{}] {}".format(level, cur.do.op.human.name))
+        print("  [{}] {}".format(level, cur.do.op.op.human.name))
         level += 1
         cur = cur.parent
 
