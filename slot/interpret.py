@@ -149,4 +149,5 @@ class Interpreter(LoggingClass):
     def run(self, path):
         script = strWithFileAtPath(path)
         slop = self.link(self.define(self.parse(script)))
-        self.execute(M.Slex(op = slop))
+        slop.human = M.Human(name = "__main__")
+        self.execute(self.instantiate(M.MetaSlex(op = M.MetaSlot(concrete = M.Slot(data = slop)))))

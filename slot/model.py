@@ -262,12 +262,9 @@ class Slex(object):
 
 class Slop(object):
 
-    def __init__(self, params = None, locals = None, steps = None, native = None, human = None):
-        self.params = params or []  # type [MetaSlot]
-        self.locals = locals or []  # type [MetaSlot]
-        self.steps = steps or []  # type [MetaSlex]
-        self.native = native or None  # type Object
-        self.human = human or None  # type Human
+    def __init__(self, op = None, captured = None):
+        self.op = op or None  # type MetaSlop
+        self.captured = captured or []  # type [Slot]
 
     @property
     def typeName(self):
@@ -279,11 +276,8 @@ class Slop(object):
 
     def defaultDict(self):
         return {
-            'params' : self.params or [],
-            'locals' : self.locals or [],
-            'steps' : self.steps or [],
-            'native' : self.native or None,
-            'human' : self.human or None,
+            'op' : self.op or None,
+            'captured' : self.captured or [],
         }
 
     def _description(self):
@@ -303,7 +297,65 @@ class Slop(object):
     def loadFromJson(self, json):
         if not json:
             return self
+        self.op = MetaSlop().loadFromJson(json.get('op'))
+        self.captured = [ Slot().loadFromJson(x) for x in json.get('captured') or [] ]
+        return self
+
+    def json(self, skipTypes = False):
+        d = { }
+        if not skipTypes:
+            d["type"] = self.typeName
+        if self.op != None: d['op'] = self.op.json(skipTypes = skipTypes) if hasattr(self.op, 'json') else id(self.op)
+        if self.captured != None: d['captured'] = [ x.json(skipTypes = skipTypes) for x in self.captured ]
+        return d
+
+class MetaSlop(object):
+
+    def __init__(self, params = None, captured = None, locals = None, steps = None, native = None, human = None):
+        self.params = params or []  # type [MetaSlot]
+        self.captured = captured or []  # type [MetaSlot]
+        self.locals = locals or []  # type [MetaSlot]
+        self.steps = steps or []  # type [MetaSlex]
+        self.native = native or None  # type Object
+        self.human = human or None  # type Human
+
+    @property
+    def typeName(self):
+        return "MetaSlop"
+
+    @property
+    def fsType(self):
+        return fs.MetaSlop
+
+    def defaultDict(self):
+        return {
+            'params' : self.params or [],
+            'captured' : self.captured or [],
+            'locals' : self.locals or [],
+            'steps' : self.steps or [],
+            'native' : self.native or None,
+            'human' : self.human or None,
+        }
+
+    def _description(self):
+        return "MetaSlop: `{}`".format(", ".join([ "{}={}".format(k, v) for k, v in self.json(skipTypes = True).items() ]))
+
+    def _newObjectOfSameType(self):
+        return MetaSlop()
+
+    def clone(self):
+        c = self._newObjectOfSameType()
+        if hasattr(self, 'serialize'):
+            c.deserialize(self.serialize())
+        else:
+            c.loadFromJson(self.json())
+        return c
+
+    def loadFromJson(self, json):
+        if not json:
+            return self
         self.params = [ MetaSlot().loadFromJson(x) for x in json.get('params') or [] ]
+        self.captured = [ MetaSlot().loadFromJson(x) for x in json.get('captured') or [] ]
         self.locals = [ MetaSlot().loadFromJson(x) for x in json.get('locals') or [] ]
         self.steps = [ MetaSlex().loadFromJson(x) for x in json.get('steps') or [] ]
         self.native = Object().loadFromJson(json.get('native'))
@@ -315,6 +367,7 @@ class Slop(object):
         if not skipTypes:
             d["type"] = self.typeName
         if self.params != None: d['params'] = [ x.json(skipTypes = skipTypes) for x in self.params ]
+        if self.captured != None: d['captured'] = [ x.json(skipTypes = skipTypes) for x in self.captured ]
         if self.locals != None: d['locals'] = [ x.json(skipTypes = skipTypes) for x in self.locals ]
         if self.steps != None: d['steps'] = [ x.json(skipTypes = skipTypes) for x in self.steps ]
         if self.native != None: d['native'] = self.native.json(skipTypes = skipTypes) if hasattr(self.native, 'json') else id(self.native)
@@ -699,6 +752,7 @@ _g_fsMap = {
     fs.Slot : Slot,
     fs.Slex : Slex,
     fs.Slop : Slop,
+    fs.MetaSlop : MetaSlop,
     fs.MetaSlot : MetaSlot,
     fs.MetaSlex : MetaSlex,
     fs.SlopDef : SlopDef,

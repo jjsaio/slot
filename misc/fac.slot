@@ -10,6 +10,8 @@
     }
     |base| > ![] { n = c1 }
     |gt1|
+    Generic_print(k)
+    #_printNextInstructions()
     Boolean_greaterThan(gt1, k, c1)
     Slop_executeIfElse(recur, gt1, base)
 }

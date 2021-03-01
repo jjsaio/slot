@@ -1,5 +1,6 @@
 
 from . import model as M
+from .display import debugString
 from .logging import LoggingClass
 
 
@@ -36,11 +37,11 @@ class Executor(LoggingClass):
         assert(not exNode.executed)
         ctx = self._execContext
         ctx.node = exNode
-        self.debug("execSlex:", slex)
+        self.debug("execSlex:", debugString(slex), " -- ", debugString(slex.op))
 
         # get the op
-        slop = slex.op
-        if (not slop) or (not isinstance(slop, M.Slop)):
+        slop = slex.op.op
+        if (not slop) or (not isinstance(slop, M.MetaSlop)):
             raise Exception("Cannot execute Slex with non-Slop op: {}".format(slop))
 
         # native handling can just pass the args directly
@@ -49,23 +50,36 @@ class Executor(LoggingClass):
             slop.native(ctx)
             return
 
-        # instantiate the parameters (using the args)
         inst = ctx.interpreter.instantiator
+        instantiated = []
+        def _addInstantiated(imslot, islot = None):
+            res = inst.instantiateMetaSlot(imslot, islot)
+            if res == imslot.instanced:
+                instantiated.append(imslot)
+
+        # instantiate the captured slots
+        assert(len(slex.op.captured) == len(slop.captured))
+        for cslot, cap in zip(slop.captured, slex.op.captured):
+            if not cslot.instanced:
+                self.debug("INSTc", cslot)
+                _addInstantiated(cslot, cap)
+
+        # instantiate the parameters (using the args)
         assert(len(slex.args) == len(slop.params))
         for param, arg in zip(slop.params, slex.args):
             self.debug("INSTp", param)
-            inst.instantiateMetaSlot(param, arg)
+            _addInstantiated(param, arg)
 
         # instantiate the locals
         for loc in slop.locals:
-            if not loc.concrete:
-                self.debug("INSTl", loc)
-                inst.instantiateMetaSlot(loc)
+            self.debug("LOC", debugString(loc))
+            _addInstantiated(loc)
 
         # instantiate the slexes, set up continuations
         myNext = exNode.next
         cur = exNode
         for ms in slop.steps:
+            self.debug("inst step: ", debugString(ms), " --- ", debugString(slop))
             step = M.ExecutionNode(slex = inst.instantiateMetaSlex(ms))
             step.parent = exNode
             cur.next = step
@@ -76,10 +90,9 @@ class Executor(LoggingClass):
         # important that this is *before* the steps execute, in order to support recursion (re-use of MetaSlots)
         #  (this is not an in issue for a singleton, serialized, tail-recursive executor)
         #  (in multi-executor environment, we'd probably have to hold a lock at the slop object)
-        for ms in slop.params + slop.locals:
-            if not ms.concrete:
-                self.debug("unINST", ms)
-                inst.uninstantiateMetaSlot(ms)
+        for ms in instantiated:
+            self.debug("unINST", debugString(ms))
+            inst.uninstantiateMetaSlot(ms)
 
         # continuation is set up and will be next executed
         self.debug("exec done, coming up:", exNode.next)

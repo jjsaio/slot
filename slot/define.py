@@ -206,7 +206,7 @@ class ExtendedDefinitionMaker(KernelDefinitionMaker):
         assert(isinstance(ref, M.SlotRef))
         sd = M.SlotDef(slotType = "Slot")
         slex = M.SlexDef(op = M.SlotRef(name = "Generic_up"),
-                         args = [ ref, M.SlotRef(slot = sd, name = "[Ascension of {}]".format(ref.name)) ])
+                         args = [ ref, M.SlotRef(slot = sd, name = "_↑{}_".format(ref.name)) ])
         return [ sd, slex ]
 
     def down(self, args):
@@ -215,7 +215,7 @@ class ExtendedDefinitionMaker(KernelDefinitionMaker):
         assert(isinstance(ref, M.SlotRef))
         sd = M.SlotDef(slotType = "Generic")
         slex = M.SlexDef(op = M.SlotRef(name = "Slot_down"),
-                         args = [ ref, M.SlotRef(slot = sd, name = "[Descension of {}]".format(ref.name)) ])
+                         args = [ ref, M.SlotRef(slot = sd, name = "_↓{}_".format(ref.name)) ])
         return [ sd, slex ]
 
 

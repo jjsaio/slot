@@ -71,7 +71,7 @@ def _Slop_executeIf(ctx):
 def _Slop_executeIfElse(ctx):
     slex = ctx.node.slex
     ifSlop, cond, elSlop = slex.args
-    execSlop = ifSlop if cond else elSlop
+    execSlop = ifSlop if cond.data else elSlop
     assert(isinstance(execSlop.data, M.Slop))
     ctx.interpreter.execute(M.Slex(op = execSlop.data))
 
@@ -118,7 +118,7 @@ def _printNextInstructions(ctx, startNode = None):
             prefix = "  @ "
         else:
             prefix = " \->"
-        print("  {} {}".format(prefix, cur.slex.op.human.name))
+        print("  {} {}".format(prefix, cur.slex.op.op.human.name))
         cur = cur.next
 
 
@@ -143,16 +143,17 @@ def builtinNamespace():
     addType('MetaSlot')
     addType('Slex')
     addType('MetaSlex')
-    slop = addType('Slop')
+    addType('Slop')
+    slop = addType('MetaSlop')
     exctx = addType('ExecutionContext')
     exnode = addType('ExecutionNode')
 
     def addBuiltin(name, handler, params):
         h = M.Human(name = name)
         s = M.Slot(slotType = slop,
-                   data = M.Slop(params = [ M.MetaSlot(slotType = t, human = M.Human(name = n)) for (n, t) in params ],
-                                 native = handler,
-                                 human = h),
+                   data = M.MetaSlop(params = [ M.MetaSlot(slotType = t, human = M.Human(name = n)) for (n, t) in params ],
+                                     native = handler,
+                                     human = h),
                    human = h)
         ns.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s, human = h))
         return s

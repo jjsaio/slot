@@ -1135,6 +1135,7 @@ SlexDef = 1154
 SlotType = 1155
 ExecutionNode = 1156
 ExecutionContext = 1157
+MetaSlop = 1158
 
 g_fsMap = {
     APIChannel : "APIChannel",
@@ -1374,6 +1375,7 @@ g_fsMap = {
     MerkleTree : "MerkleTree",
     Message : "Message",
     MetaSlex : "MetaSlex",
+    MetaSlop : "MetaSlop",
     MetaSlot : "MetaSlot",
     MixerPeerInfo : "MixerPeerInfo",
     MotifQuery : "MotifQuery",

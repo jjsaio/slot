@@ -11,6 +11,7 @@ class Namespace(LoggingClass):
         self._parent = parent
         self._namedSlots = {}
         self._anonymousSlots = []
+        self._captured = []
 
     def dump(self, all = False):
         lines = [ "Namespace @ {}".format(id(self)) ]
@@ -49,3 +50,22 @@ class Namespace(LoggingClass):
         assert(isinstance(slot, M.MetaSlot))
         self._anonymousSlots.append(slot)
         return slot
+
+    def ownsSlot(self, slot, name = None):
+        if name and (self._namedSlots.get(name) == slot):
+            return True
+        # could improve this if necc with an id-based lookup
+        return (slot in self._namedSlots.values()) or (slot in self._anonymousSlots)
+
+    def capture(self, slot):
+        assert(isinstance(slot, M.MetaSlot))
+        assert(not self.ownsSlot(slot))
+        if slot in self._captured:
+            return
+        self._captured.append(slot)
+        if self._parent and (not self._parent.ownsSlot(slot)):
+            self._parent.capture(slot)
+
+    @property
+    def capturedSlots(self):
+        return self._captured
