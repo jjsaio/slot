@@ -11,7 +11,7 @@
     |base| > ![] { n = c1 }
     |gt1|
     Generic_print(k)
-    #_printNextInstructions()
+    _printNextDos()
     Boolean_greaterThan(gt1, k, c1)
     Cop_executeIfElse(recur, gt1, base)
 }

@@ -6,7 +6,7 @@
 |bar| > ![x, y] {
       Generic_print(sep)
       # just to see it in action
-      _printNextInstructions()
+      _printNextDos()
       Integer_plus(x, x, y)
       Integer_times(x, x, y)
 }

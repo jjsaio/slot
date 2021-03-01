@@ -87,21 +87,21 @@ def _ExecutionNode_current(ctx):
     # TODO: runtime type compat? better of course if it's link-time...
     dest.data = ctx.node
 
-def _ExecutionNode_printStack(ctx):
+def _ExecutionNode_printDoStack(ctx):
     do = ctx.node.do
     cell = do.args[0]
     if not isinstance(cell.data, M.ExecutionNode):
         raise Exception("Not an ExecutionNode: `{}`".format(displayDesignation(cell)))
-    _printStack(ctx, startNode = cell.data)
+    _printDoStack(ctx, startNode = cell.data)
 
-def _ExecutionNode_printNextInstructions(ctx):
+def _ExecutionNode_printNextDos(ctx):
     do = ctx.node.do
     cell = do.args[0]
     if not isinstance(cell.data, M.ExecutionNode):
         raise Exception("Not an ExecutionNode: `{}`".format(displayDesignation(cell)))
-    _printNextInstructions(ctx, startNode = cell.data)
+    _printNextDos(ctx, startNode = cell.data)
 
-def _printStack(ctx, startNode = None):
+def _printDoStack(ctx, startNode = None):
     cur = startNode or ctx.node
     level = 0
     while cur:
@@ -109,7 +109,7 @@ def _printStack(ctx, startNode = None):
         level += 1
         cur = cur.parent
 
-def _printNextInstructions(ctx, startNode = None):
+def _printNextDos(ctx, startNode = None):
     cur = startNode or ctx.node
     while cur:
         if cur.executed:
@@ -171,9 +171,9 @@ def builtinNamespace():
     addBuiltin('Cop_executeIfElse', _Cop_executeIfElse, [ ( "ifcop", cop ), ("cond", boolean ), ( "elcop", cop ) ])
     addBuiltin('ExecutionContext_current', _ExecutionContext_current, [ ( "ctx", exctx ) ])
     addBuiltin('ExecutionNode_current', _ExecutionNode_current, [ ( "node", exnode ) ])
-    addBuiltin('ExecutionNode_printStack', _ExecutionNode_printStack, [ ( "node", exnode ) ])
-    addBuiltin('ExecutionNode_printNextInstructions', _ExecutionNode_printNextInstructions, [ ( "node", exnode ) ])
-    addBuiltin('_printStack', _printStack, [ ])
-    addBuiltin('_printNextInstructions', _printNextInstructions, [ ])
+    addBuiltin('ExecutionNode_printDoStack', _ExecutionNode_printDoStack, [ ( "node", exnode ) ])
+    addBuiltin('ExecutionNode_printNextDos', _ExecutionNode_printNextDos, [ ( "node", exnode ) ])
+    addBuiltin('_printDoStack', _printDoStack, [ ])
+    addBuiltin('_printNextDos', _printNextDos, [ ])
 
     return ns
