@@ -36,7 +36,7 @@ class Interactive(LoggingClass):
         self.commands = {
             "h" : [ "help" ],
             "w" : [ "wipe", "reset" ],
-            "v" : [ "env", "environment", "ctx", "context" ],
+            "v" : [ "env", "environment", "ns", "namespace", "context" ],
             "b" : [ "batch" ],
             "g" : [ "debug" ],
             "k" : [ "kernel" ],
@@ -81,6 +81,7 @@ class Interactive(LoggingClass):
                 else:
                     self._dispatch(self.mode, resp)
             except Exception as e:
+                self.error(e)
                 if self._raiseOnError:
                     raise e
 
@@ -105,7 +106,7 @@ class Interactive(LoggingClass):
         i = self._interpreter
         self._showResult(i.define(i.parse(resp)))
 
-    def _cmd_c(self, resp):
+    def _cmd_l(self, resp):
         i = self._interpreter
         self._showResult(i.link(i.define(i.parse(resp))))
 
@@ -163,7 +164,7 @@ class Interactive(LoggingClass):
         self.info("interpreter reset")
 
     def _cmd_v(self, rest):
-        print(self._interpreter._context.dump(all = (rest and (rest[0] == "a"))))
+        print(self._interpreter.namespace.dump(all = (rest and (rest[0] == "a"))))
 
     def _cmd_x(self, rest):
         self._raiseOnError = not self._raiseOnError

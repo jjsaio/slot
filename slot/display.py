@@ -10,11 +10,11 @@ def displayStructure(x):
     if isinstance(x, M.Slot):
         d = _displayType(x.slotType)
     elif isinstance(x, M.MetaSlot):
-        d = _displayType(x.slotType)
         if x.concrete:
-            d += "(concrete)"
-        elif x.instanced:
-            d += "(instanced)"
+            d = "C"
+        else:
+            d = "I"
+        d = "{}[{}]".format(d, _displayType(x.slotType))
     elif isinstance(x, M.Slop):
         d = "..." # TBD
     elif isinstance(x, M.Slex):

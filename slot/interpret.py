@@ -1,6 +1,6 @@
 
 from . import model as M
-from .builtin import builtinContext
+from .builtin import builtinNamespace
 from .link import Linker
 from .define import Definer
 from .display import displayStructure
@@ -21,11 +21,14 @@ class Interpreter(LoggingClass):
         self._linker = Linker()
         self._instantiator = Instantiator()
         self._executor = Executor(self)
-        self._context = builtinContext().derive()
+        self._namespace = builtinNamespace().derive()
 
+    @property
+    def namespace(self):
+        return self._namespace
 
     def reset(self):
-        self._context = builtinContext().derive()
+        self._namespace = builtinNamespace().derive()
 
 
     @property
@@ -49,8 +52,7 @@ class Interpreter(LoggingClass):
         try:
             return self._parser.parse(theStr)
         except Exception as e:
-            self.error("Syntax error: {}".format(e))
-            raise e
+            raise Exception("Syntax error: {}".format(e))
 
 
     @property
@@ -64,8 +66,7 @@ class Interpreter(LoggingClass):
         try:
             return self._definer.define(tree)
         except Exception as e:
-            self.error("Definition failed: {}".format(e))
-            raise e
+            raise Exception("Definition failed: {}".format(e))
 
 
     @property
@@ -84,13 +85,11 @@ class Interpreter(LoggingClass):
         if not parsed:
             return None
         if not Linker.canLink(parsed):
-            self.error("Cannot link: {}".format(displayStructure(parsed)))
-            return None
+            raise Exception("Cannot link: {}".format(displayStructure(parsed)))
         try:
-            return self._linker.link(parsed, self._context)
+            return self._linker.link(parsed, self._namespace)
         except Exception as e:
-            self.error("Compilation failed: {}".format(e))
-            raise e
+            raise Exception("Linking failed: {}".format(e))
 
 
     @property
@@ -109,13 +108,11 @@ class Interpreter(LoggingClass):
         if not linked:
             return None
         if not Instantiator.canInstantiate(linked):
-            self.error("Cannot instantiate: {}".format(displayStructure(linked)))
-            return None
+            raise Exception("Cannot instantiate: {}".format(displayStructure(linked)))
         try:
             return self._instantiator.instantiate(linked)
         except Exception as e:
-            self.error("Instantiation failed: {}".format(e))
-            raise e
+            raise Exception("Instantiation failed: {}".format(e))
 
 
     @property
@@ -139,13 +136,11 @@ class Interpreter(LoggingClass):
             return False
         try:
             if not Executor.canExecute(inst):
-                self.error("Cannot execute: {}".format(displayStructure(slex)))
-                return False
+                raise Exception("Cannot execute: {}".format(displayStructure(inst)))
             self._executor.execute(inst)
             return True
         except Exception as e:
-            self.error("Execution failed: {}".format(e))
-            raise e
+            raise Exception("Execution failed: {}".format(e))
 
 
     def handleDefinition(self, defined):
@@ -158,8 +153,7 @@ class Interpreter(LoggingClass):
         elif defined.fsType == fs.SlopDef:
             return self.link(defined)
         else:
-            self.error("Unhandled definition type `{}`".format(defined))
-            return False
+            raise Exception("Unhandled definition type `{}`".format(defined))
 
     def handle(self, inputString):
         assert(isinstance(inputString, str))

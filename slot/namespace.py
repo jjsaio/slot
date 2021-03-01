@@ -4,7 +4,7 @@ from .display import displayStructure, displayDesignation
 from .logging import LoggingClass
 
 
-class Context(LoggingClass):
+class Namespace(LoggingClass):
 
     def __init__(self, parent = None):
         LoggingClass.__init__(self)
@@ -13,7 +13,7 @@ class Context(LoggingClass):
         self._anonymousSlots = []
 
     def dump(self, all = False):
-        lines = [ "Context @ {}".format(id(self)) ]
+        lines = [ "Namespace @ {}".format(id(self)) ]
         slots = [ (name, self._namedSlots[name]) for name in sorted(self._namedSlots.keys()) ] + [ (None, s) for s in self._anonymousSlots ]
         for name, mslot in slots:
             assert(isinstance(mslot, M.MetaSlot))
@@ -29,7 +29,7 @@ class Context(LoggingClass):
         return dmp
 
     def derive(self):
-        return Context(self)
+        return Namespace(self)
 
     def hasSlotNamed(self, n):
         return (n in self._namedSlots) or (self._parent and self._parent.hasSlotNamed(n))
@@ -40,7 +40,7 @@ class Context(LoggingClass):
     def addNamedSlot(self, name, slot):
         assert(not name.startswith('['))
         if name in self._namedSlots:
-            raise Exception("Slot already exists in context: `{}`".format(name))
+            raise Exception("Slot already exists in namespace: `{}`".format(name))
         assert(isinstance(slot, M.MetaSlot))
         self._namedSlots[name] = slot
         return slot

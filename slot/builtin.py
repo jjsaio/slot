@@ -1,7 +1,7 @@
 
 from . import model as M
-from .context import Context
 from .display import displayDesignation
+from .namespace import Namespace
 from .util import prettyJson
 
 
@@ -29,6 +29,11 @@ def _Generic_up(ctx):
     slex = ctx.node.slex
     source, slot = slex.args
     slot.data = source
+
+def _Generic_print(ctx):
+    slex = ctx.node.slex
+    slot = slex.args[0]
+    print(slot.data)
 
 def _Slot_down(ctx):
     slex = ctx.node.slex
@@ -98,18 +103,18 @@ def _printNextInstructions(ctx, startNode = None):
         cur = cur.next
 
 
-def builtinContext():
-    ctx = Context()
+def builtinNamespace():
+    ns = Namespace()
 
     typeType = M.SlotType(human = M.Human(name = 'Type'))
 
-    def addType(name, displayType = None):
-        st = M.SlotType(human = M.Human(name = name, displayType = displayType))
+    def addType(name):
+        st = M.SlotType(human = M.Human(name = name))
         s = M.Slot(slotType = typeType, data = st, human = st.human)
-        ctx.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s, human = s.human))
+        ns.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s, human = s.human))
         return st
 
-    generic = addType('Generic', displayType = '*')
+    generic = addType('Generic')
     addType('Nil')
     boolean = addType('Boolean')
     integer = addType('Integer')
@@ -130,12 +135,13 @@ def builtinContext():
                                  native = handler,
                                  human = h),
                    human = h)
-        ctx.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s, human = h))
+        ns.addNamedSlot(name, M.MetaSlot(slotType = s.slotType, concrete = s, human = h))
         return s
 
     addBuiltin('plus', _Integer_plus, [ ("sum", integer), ("x", integer), ("y", integer) ])
     addBuiltin('Slot_copy', _Slot_copy, [ ("dest", slot), ("source", slot) ])
     addBuiltin('Generic_up', _Generic_up, [ ("source", generic), ("slot", slot) ])
+    addBuiltin('Generic_print', _Generic_print, [ ("item", generic) ])
     addBuiltin('Slot_down', _Slot_down, [ ("slot", slot), ("dest", generic) ])
     addBuiltin('Slop_execute', _Slop_execute, [ ( "slop", slop ) ])
     addBuiltin('Slop_execute_if', _Slop_execute_if, [ ( "slop", slop ), ("cond", boolean ) ])
@@ -146,4 +152,4 @@ def builtinContext():
     addBuiltin('_printStack', _printStack, [ ])
     addBuiltin('_printNextInstructions', _printNextInstructions, [ ])
 
-    return ctx
+    return ns
